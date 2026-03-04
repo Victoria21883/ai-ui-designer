@@ -1,0 +1,49 @@
+/* src/themes/base.css */
+:root {
+  /* Цвета - светлая тема (по умолчанию) */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-secondary: #6b7280;
+  --color-secondary-hover: #4b5563;
+  --color-background: #ffffff;
+  --color-surface: #f3f4f6;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-border: #e5e7eb;
+  --color-error: #ef4444;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+
+  /* Отступы */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  /* Скругления */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+
+  /* Тени */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+/* Темная тема */
+.theme-dark {
+  --color-primary: #60a5fa;
+  --color-primary-hover: #3b82f6;
+  --color-secondary: #9ca3af;
+  --color-secondary-hover: #6b7280;
+  --color-background: #111827;
+  --color-surface: #1f2937;
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #9ca3af;
+  --color-border: #374151;
+  --color-error: #f87171;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+}
