@@ -117,33 +117,73 @@ export const mockAIResponses: Record<string, MockLayout> = {
       },
     ],
   },
+
+  'форма регистрации': {
+    type: 'page',
+    children: [
+      {
+        type: 'header',
+        text: 'Регистрация',
+        style: 'text-3xl font-bold text-center mb-6',
+      },
+      {
+        type: 'container',
+        style: 'max-w-md mx-auto p-6 bg-white rounded-lg shadow-md',
+        children: [
+          {
+            type: 'input',
+            props: {
+              placeholder: 'Имя',
+              type: 'text',
+            },
+            style: 'w-full mb-4 p-2 border rounded',
+          },
+          {
+            type: 'input',
+            props: {
+              placeholder: 'Email',
+              type: 'email',
+            },
+            style: 'w-full mb-4 p-2 border rounded',
+          },
+          {
+            type: 'input',
+            props: {
+              placeholder: 'Пароль',
+              type: 'password',
+            },
+            style: 'w-full mb-4 p-2 border rounded',
+          },
+          {
+            type: 'button',
+            text: 'Зарегистрироваться',
+            style: 'w-full bg-green-500 text-white py-2 rounded hover:bg-green-600',
+          },
+        ],
+      },
+    ],
+  },
 };
 
 // Тип для возвращаемого значения функции getMockResponse
-export type MockResponse =
-  | MockLayout
-  | {
-      type: 'page';
-      children: Array<{
-        type: string;
-        text?: string;
-        style?: string;
-        props?: {
-          content?: string;
-          variant?: string;
-        };
-      }>;
-    };
+export type MockResponse = MockLayout;
 
 // Функция для получения мокового ответа
-export const getMockResponse = (prompt: string): MockResponse => {
+export const getMockResponse = (prompt: string): MockLayout => {
   // Ищем ключевые слова в промпте
   const lowerPrompt = prompt.toLowerCase();
 
   if (lowerPrompt.includes('вход') || lowerPrompt.includes('логин')) {
     return mockAIResponses['страница входа'];
-  } else if (lowerPrompt.includes('карточка') || lowerPrompt.includes('товар')) {
+  }
+
+  if (lowerPrompt.includes('карточка') || lowerPrompt.includes('товар')) {
     return mockAIResponses['карточка товара'];
+  }
+
+  // ✅ ДОБАВЛЕНО: обработка для регистрации
+  if (lowerPrompt.includes('регистрация') || lowerPrompt.includes('регистр')) {
+    return mockAIResponses['форма регистрации'];
   }
 
   // Возвращаем простой ответ по умолчанию

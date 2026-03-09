@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getMockResponse } from '../../core/ai/mockData';
 import { useProjectStore } from '../../store/projectStore';
+import Canvas from '../../components/Canvas';
 import type { MockResponse, MockComponent } from '../../core/ai/mockData';
 import type { UIComponent, ComponentType } from '../../types/types';
 
@@ -22,6 +23,7 @@ const EditorPage: React.FC = () => {
     generateNewProject,
     saveProject,
     selectedComponentId,
+    selectComponent,
   } = useProjectStore();
 
   // При первой загрузке создаем новый проект, если его нет
@@ -55,7 +57,7 @@ const EditorPage: React.FC = () => {
     if (mock.children && Array.isArray(mock.children)) {
       return {
         ...baseComponent,
-        children: mock.children.map((child, childIndex) =>
+        children: mock.children.map((child: MockComponent, childIndex: number) =>
           transformMockToComponent(child, childIndex)
         ),
       };
@@ -67,9 +69,12 @@ const EditorPage: React.FC = () => {
   // Функция для преобразования MockResponse в UIComponent[]
   const transformMockToComponents = (mockData: MockResponse): UIComponent[] => {
     if (!mockData || !mockData.children) return [];
-    return mockData.children.map((child, index) => transformMockToComponent(child, index));
+    return mockData.children.map((child: MockComponent, index: number) =>
+      transformMockToComponent(child, index)
+    );
   };
 
+  // В функции handleGenerate добавьте:
   const handleGenerate = async () => {
     if (!prompt.trim()) {
       setError('Пожалуйста, введите описание интерфейса');
@@ -80,16 +85,21 @@ const EditorPage: React.FC = () => {
     setError(null);
 
     try {
+      console.log('Генерируем для промпта:', prompt); // ОТЛАДКА
+
       // Имитация задержки сети
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Получаем моковый ответ
       const mockResponse = getMockResponse(prompt);
+      console.log('Моковый ответ:', mockResponse); // ОТЛАДКА
+
       setGeneratedJSON(mockResponse);
 
       // Сохраняем в store
       if (currentProject) {
         const components = transformMockToComponents(mockResponse);
+        console.log('Преобразованные компоненты:', components); // ОТЛАДКА
 
         setCurrentProject({
           ...currentProject,
@@ -98,23 +108,16 @@ const EditorPage: React.FC = () => {
         });
 
         saveProject();
+        console.log('Проект сохранен, компонентов:', components.length); // ОТЛАДКА
       }
 
       console.log('Сгенерированный JSON:', mockResponse);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка при генерации');
+      console.error('Ошибка генерации:', err); // ОТЛАДКА
     } finally {
       setIsGenerating(false);
     }
-  };
-
-  // Функция для подсчета количества компонентов
-  const countComponents = (data: MockResponse | null): number => {
-    if (!data) return 0;
-    if ('children' in data && Array.isArray(data.children)) {
-      return data.children.length;
-    }
-    return 0;
   };
 
   // Функции для демонстрации разных состояний
@@ -185,6 +188,9 @@ const EditorPage: React.FC = () => {
       setPrompt('');
     },
   };
+
+  // Используем generatedJSON для отображения в интерфейсе (добавим панель с JSON)
+  const showJSONPreview = generatedJSON && showTestButtons; // Показываем JSON только в тестовом режиме
 
   return (
     <div className="min-h-screen bg-background">
@@ -343,9 +349,24 @@ const EditorPage: React.FC = () => {
                     📁 Новый проект
                   </button>
                 </div>
-                <p className="text-xs text-yellow-600 mt-2">
-                  ⚡ Эти кнопки помогают тестировать разные состояния. Удалите их перед релизом!
-                </p>
+              </div>
+            )}
+
+            {/* Панель с JSON (только в тестовом режиме) */}
+            {showJSONPreview && (
+              <div className="mt-4 p-4 bg-gray-800 border border-gray-700 rounded">
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-sm text-gray-300 font-medium">📋 JSON Preview</p>
+                  <button
+                    onClick={() => setGeneratedJSON(null)}
+                    className="text-xs text-gray-400 hover:text-gray-200"
+                  >
+                    ✕ Закрыть
+                  </button>
+                </div>
+                <pre className="text-xs text-gray-300 bg-gray-900 p-3 rounded max-h-60 overflow-auto">
+                  {JSON.stringify(generatedJSON, null, 2)}
+                </pre>
               </div>
             )}
           </div>
@@ -354,6 +375,7 @@ const EditorPage: React.FC = () => {
 
       {/* Основная область редактора */}
       <div className="flex h-[calc(100vh-180px)]">
+        {/* Левая панель - компоненты */}
         <aside className="w-64 bg-surface border-r border-border p-4 overflow-y-auto">
           <h3 className="font-semibold mb-4">Компоненты</h3>
           <div className="space-y-2">
@@ -382,59 +404,29 @@ const EditorPage: React.FC = () => {
           )}
         </aside>
 
+        {/* Центральная область - холст */}
         <main className="flex-1 bg-[#f8f9fa] p-8 overflow-auto">
-          <div className="min-h-full bg-white rounded-lg shadow-sm border-2 border-dashed border-border p-8">
-            {generatedJSON ? (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-semibold text-text-primary">Сгенерированный макет</h3>
-                  <pre className="text-xs bg-gray-100 p-2 rounded max-h-40 overflow-auto">
-                    {JSON.stringify(generatedJSON, null, 2)}
-                  </pre>
-                </div>
-                <div className="border border-primary/20 bg-primary/5 p-4 rounded">
-                  <p className="text-text-secondary">
-                    🎉 JSON успешно сгенерирован и сохранен в store!
-                  </p>
-                  {currentProject && (
-                    <p className="text-xs text-text-secondary mt-2">
-                      Компонентов в проекте: {currentProject.components.length}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="text-center text-text-secondary">
-                <p className="mb-4">✨ Холст для редактирования</p>
-                <p className="text-sm">
-                  {isGenerating
-                    ? 'Генерируем макет...'
-                    : 'Введите описание и нажмите "Сгенерировать"'}
-                </p>
-                {currentProject && currentProject.components.length > 0 && (
-                  <p className="text-xs text-primary mt-4">
-                    В проекте уже есть {currentProject.components.length} компонентов
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
+          {currentProject ? (
+            <Canvas
+              components={currentProject.components}
+              selectedId={selectedComponentId}
+              onSelectComponent={selectComponent}
+            />
+          ) : (
+            <div className="text-center text-text-secondary">
+              <p className="mb-4">✨ Загрузка...</p>
+            </div>
+          )}
         </main>
 
+        {/* Правая панель - свойства */}
         <aside className="w-80 bg-surface border-l border-border p-4 overflow-y-auto">
           <h3 className="font-semibold mb-4">Свойства</h3>
           <div className="text-text-secondary text-sm">
             {selectedComponentId ? (
               <div>
                 <p className="text-primary">Выбран компонент: {selectedComponentId}</p>
-              </div>
-            ) : generatedJSON ? (
-              <div className="space-y-2">
-                <p>✅ Макет сгенерирован</p>
-                <p className="text-xs">Всего компонентов: {countComponents(generatedJSON)}</p>
-                <p className="text-xs text-primary mt-2">
-                  👆 Нажмите на компонент на холсте для редактирования
-                </p>
+                <p className="mt-2 text-xs">Здесь будет редактор свойств</p>
               </div>
             ) : (
               <p>Выберите компонент на холсте для редактирования свойств</p>
