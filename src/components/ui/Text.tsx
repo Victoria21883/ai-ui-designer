@@ -1,4 +1,3 @@
-// src/components/ui/Text.tsx
 import React from 'react';
 
 type TextVariant = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span' | 'div';
@@ -9,13 +8,13 @@ interface TextProps {
   className?: string;
   style?: React.CSSProperties;
   variant?: TextVariant;
-  color?: string; // Добавлено
-  backgroundColor?: string; // Добавлено
-  textAlign?: 'left' | 'center' | 'right' | 'justify'; // Добавлено
-  fontWeight?: string; // Добавлено
-  fontSize?: string; // Добавлено
-  margin?: string; // Добавлено
-  padding?: string; // Добавлено
+  color?: string;
+  backgroundColor?: string;
+  textAlign?: 'left' | 'center' | 'right' | 'justify';
+  fontWeight?: string;
+  fontSize?: string;
+  margin?: string;
+  padding?: string;
 }
 
 const variantToTag: Record<string, React.ElementType> = {

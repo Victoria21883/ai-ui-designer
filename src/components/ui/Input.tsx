@@ -1,4 +1,3 @@
-// src/components/ui/Input.tsx
 import React from 'react';
 
 interface InputProps {
@@ -9,13 +8,13 @@ interface InputProps {
   value?: string;
   label?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  color?: string; // Добавлено
-  backgroundColor?: string; // Добавлено
-  width?: string; // Добавлено
-  height?: string; // Добавлено
-  margin?: string; // Добавлено
-  padding?: string; // Добавлено
-  borderRadius?: string; // Добавлено
+  color?: string;
+  backgroundColor?: string;
+  width?: string;
+  height?: string;
+  margin?: string;
+  padding?: string;
+  borderRadius?: string;
 }
 
 const Input: React.FC<InputProps> = ({

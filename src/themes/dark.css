@@ -1,0 +1,60 @@
+/* src/themes/dark.css */
+.theme-dark {
+  /* Основные цвета */
+  --color-primary: #60a5fa;
+  --color-primary-hover: #3b82f6;
+  --color-secondary: #9ca3af;
+  --color-secondary-hover: #6b7280;
+  --color-accent: #a78bfa;
+
+  /* Фоновые цвета */
+  --color-background: #111827;
+  --color-surface: #1f2937;
+  --color-surface-hover: #374151;
+
+  /* Текст */
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #9ca3af;
+  --color-text-disabled: #6b7280;
+
+  /* Границы */
+  --color-border: #374151;
+  --color-border-focus: #60a5fa;
+
+  /* Статусы */
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+  --color-info: #60a5fa;
+
+  /* Отступы (те же значения) */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  /* Скругления (те же значения) */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+
+  /* Тени для темной темы */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
+
+  /* Типографика (те же значения) */
+  --font-family-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+
+  /* Анимации */
+  --transition-fast: 150ms;
+  --transition-normal: 300ms;
+}
