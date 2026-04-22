@@ -1,15 +1,15 @@
-// src/pages/EditorPage/EditorPage.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { getMockResponse } from '../../core/ai/mockData';
 import { useProjectStore } from '../../store/projectStore';
-import { useThemeStore } from '../../store/themeStore';
 import Canvas from '../../components/Canvas';
 import ComponentPalette from '../../components/ComponentPalette';
 import PropertyPanel from '../../components/PropertyPanel';
 import ThemeToggle from '../../components/ThemeToggle';
+import HistoryControls from '../../components/HistoryControls';
+import HistoryPanel from '../../components/HistoryPanel';
 import type { MockResponse, MockComponent } from '../../core/ai/mockData';
 import type { UIComponent, ComponentType } from '../../types/types';
 import type { DragItem } from '../../types/dnd.types';
@@ -20,8 +20,8 @@ const EditorPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [generatedJSON, setGeneratedJSON] = useState<MockResponse | null>(null);
   const [showTestButtons, setShowTestButtons] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
-  // Zustand stores
   const {
     currentProject,
     setCurrentProject,
@@ -31,20 +31,41 @@ const EditorPage: React.FC = () => {
     selectComponent,
   } = useProjectStore();
 
-  useThemeStore();
-
   useEffect(() => {
     if (!currentProject) {
       generateNewProject('Новый проект', 'Проект создан из редактора');
     }
   }, [currentProject, generateNewProject]);
 
+  // Горячие клавиши для Undo/Redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+Z - Undo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        const { undo, canUndo } = useProjectStore.getState();
+        if (canUndo) undo();
+      }
+      // Ctrl+Y или Ctrl+Shift+Z - Redo
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        const { redo, canRedo } = useProjectStore.getState();
+        if (canRedo) redo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // ========== ФУНКЦИЯ ОБНОВЛЕНИЯ КОМПОНЕНТА ==========
   const handleUpdateComponent = useCallback(
     (updates: Partial<UIComponent>) => {
       if (!currentProject || !selectedComponentId) return;
 
-      console.log('🔄 Обновление компонента:', selectedComponentId, updates);
+      // Сохраняем в историю перед изменением
+      const { saveToHistory } = useProjectStore.getState();
+      saveToHistory(`✏️ Обновлен компонент`);
 
       const updateComponents = (components: UIComponent[]): UIComponent[] => {
         return components.map((comp) => {
@@ -70,7 +91,7 @@ const EditorPage: React.FC = () => {
 
   const selectedComponent = currentProject?.components.find((c) => c.id === selectedComponentId);
 
-  // ========== ФУНКЦИИ ДЛЯ ПЕРЕМЕЩЕНИЯ ЭЛЕМЕНТОВ ==========
+  // ========== ФУНКЦИИ ДЛЯ РАБОТЫ С КОМПОНЕНТАМИ ==========
   const getDefaultProps = useCallback((type: ComponentType): Record<string, unknown> => {
     switch (type) {
       case 'button':
@@ -109,44 +130,46 @@ const EditorPage: React.FC = () => {
     }
   }, []);
 
+  // Добавление компонента из палитры
   const handleDropComponent = useCallback(
-    (item: DragItem, position?: { x: number; y: number }) => {
-      if (!currentProject || !item.componentType) {
-        console.warn('Нет текущего проекта или типа компонента');
-        return;
+    (item: DragItem) => {
+      if (!currentProject || !item.componentType) return;
+
+      const { startBatch, endBatch } = useProjectStore.getState();
+      startBatch(`➕ Добавлен компонент: ${item.componentType}`);
+
+      try {
+        const newComponent: UIComponent = {
+          id: `comp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          type: item.componentType,
+          props: getDefaultProps(item.componentType),
+        };
+
+        const updatedComponents = [...currentProject.components, newComponent];
+
+        setCurrentProject({
+          ...currentProject,
+          components: updatedComponents,
+          updatedAt: new Date(),
+        });
+
+        saveProject();
+
+        selectComponent(newComponent.id);
+      } finally {
+        endBatch();
       }
-
-      const newComponent: UIComponent = {
-        id: `comp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        type: item.componentType,
-        props: getDefaultProps(item.componentType),
-      };
-
-      console.log('➕ Добавление нового компонента:', newComponent);
-      console.log('Позиция сброса:', position);
-
-      const updatedComponents = [...currentProject.components, newComponent];
-
-      setCurrentProject({
-        ...currentProject,
-        components: updatedComponents,
-        updatedAt: new Date(),
-      });
-
-      saveProject();
-      selectComponent(newComponent.id);
     },
     [currentProject, setCurrentProject, saveProject, selectComponent, getDefaultProps]
   );
 
+  // Перемещение компонента (drag & drop)
   const handleMoveComponent = useCallback(
     (dragId: string, hoverId: string) => {
       if (!currentProject) {
         console.warn('Нет текущего проекта');
         return;
       }
-
-      console.log('🔄 Перемещение компонента:', { dragId, hoverId });
 
       const dragIndex = currentProject.components.findIndex((c) => c.id === dragId);
       const hoverIndex = currentProject.components.findIndex((c) => c.id === hoverId);
@@ -157,6 +180,10 @@ const EditorPage: React.FC = () => {
       }
 
       if (dragIndex === hoverIndex) return;
+
+      // Сохраняем в историю ПЕРЕД изменением
+      const { saveToHistory } = useProjectStore.getState();
+      saveToHistory(`🔄 Перемещен компонент`);
 
       const newComponents = [...currentProject.components];
       const [draggedComponent] = newComponents.splice(dragIndex, 1);
@@ -173,11 +200,16 @@ const EditorPage: React.FC = () => {
     [currentProject, setCurrentProject, saveProject]
   );
 
+  // Удаление компонента
   const handleDeleteComponent = useCallback(
     (id: string) => {
       if (!currentProject) return;
 
-      console.log('🗑️ Удаление компонента:', id);
+      const component = currentProject.components.find((c) => c.id === id);
+
+      // Сохраняем в историю ПЕРЕД изменением
+      const { saveToHistory } = useProjectStore.getState();
+      saveToHistory(`🗑️ Удален компонент: ${component?.type || 'компонент'}`);
 
       const newComponents = currentProject.components.filter((c) => c.id !== id);
 
@@ -195,12 +227,17 @@ const EditorPage: React.FC = () => {
     [currentProject, setCurrentProject, saveProject, selectedComponentId, selectComponent]
   );
 
+  // Дублирование компонента
   const handleDuplicateComponent = useCallback(
     (id: string) => {
       if (!currentProject) return;
 
       const componentToDuplicate = currentProject.components.find((c) => c.id === id);
       if (!componentToDuplicate) return;
+
+      // Сохраняем в историю ПЕРЕД изменением
+      const { saveToHistory } = useProjectStore.getState();
+      saveToHistory(`📋 Дублирован компонент: ${componentToDuplicate.type}`);
 
       console.log('📋 Дублирование компонента:', id);
 
@@ -223,12 +260,17 @@ const EditorPage: React.FC = () => {
     [currentProject, setCurrentProject, saveProject]
   );
 
+  // Перемещение вверх
   const handleMoveUp = useCallback(
     (id: string) => {
       if (!currentProject) return;
 
       const index = currentProject.components.findIndex((c) => c.id === id);
       if (index <= 0) return;
+
+      // Сохраняем в историю ПЕРЕД изменением
+      const { saveToHistory } = useProjectStore.getState();
+      saveToHistory(`⬆️ Перемещен компонент вверх`);
 
       const newComponents = [...currentProject.components];
       [newComponents[index - 1], newComponents[index]] = [
@@ -246,12 +288,17 @@ const EditorPage: React.FC = () => {
     [currentProject, setCurrentProject, saveProject]
   );
 
+  // Перемещение вниз
   const handleMoveDown = useCallback(
     (id: string) => {
       if (!currentProject) return;
 
       const index = currentProject.components.findIndex((c) => c.id === id);
       if (index === -1 || index === currentProject.components.length - 1) return;
+
+      // Сохраняем в историю ПЕРЕД изменением
+      const { saveToHistory } = useProjectStore.getState();
+      saveToHistory(`⬇️ Перемещен компонент вниз`);
 
       const newComponents = [...currentProject.components];
       [newComponents[index], newComponents[index + 1]] = [
@@ -306,6 +353,7 @@ const EditorPage: React.FC = () => {
     );
   };
 
+  // Генерация макета через AI
   const handleGenerate = async () => {
     if (!prompt.trim()) {
       setError('Пожалуйста, введите описание интерфейса');
@@ -314,6 +362,10 @@ const EditorPage: React.FC = () => {
 
     setIsGenerating(true);
     setError(null);
+
+    // Начинаем группировку действий для генерации
+    const { startBatch, endBatch } = useProjectStore.getState();
+    startBatch(`🤖 Генерация макета: ${prompt}`);
 
     try {
       console.log('Генерируем для промпта:', prompt);
@@ -344,6 +396,8 @@ const EditorPage: React.FC = () => {
       setError(err instanceof Error ? err.message : 'Ошибка при генерации');
       console.error('Ошибка генерации:', err);
     } finally {
+      // Завершаем группировку
+      endBatch();
       setIsGenerating(false);
     }
   };
@@ -429,15 +483,13 @@ const EditorPage: React.FC = () => {
               AI UI Designer
             </Link>
             <div className="flex items-center space-x-4">
-              {/* Переключатель темы */}
               <ThemeToggle />
-
+              <HistoryControls />
               {currentProject && (
                 <span className="text-sm text-text-secondary hidden md:inline">
                   Проект: {currentProject.name}
                 </span>
               )}
-
               <button
                 onClick={() => setShowTestButtons(!showTestButtons)}
                 className="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded hover:bg-yellow-200 transition-colors"
@@ -448,6 +500,15 @@ const EditorPage: React.FC = () => {
                 <button className="btn-secondary">Предпросмотр</button>
               </Link>
               <button className="btn-primary">Экспорт</button>
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className={`p-2 rounded-lg transition-colors ${
+                  showHistory ? 'bg-primary text-white' : 'bg-surface hover:bg-surface-hover'
+                }`}
+                title="История версий"
+              >
+                📜
+              </button>
             </div>
           </div>
         </nav>
@@ -619,6 +680,13 @@ const EditorPage: React.FC = () => {
               </div>
             )}
           </aside>
+
+          {/* Панель истории (условно) */}
+          {showHistory && (
+            <aside className="w-80 bg-surface border-r border-border overflow-y-auto">
+              <HistoryPanel />
+            </aside>
+          )}
 
           {/* Центральная область - холст */}
           <main className="flex-1 bg-[#f8f9fa] p-8 overflow-auto">
