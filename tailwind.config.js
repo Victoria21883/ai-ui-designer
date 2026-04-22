@@ -1,35 +1,69 @@
-// tailwind.config.js
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
-        // CSS переменные для темизации
-        primary: "var(--color-primary)",
-        "primary-hover": "var(--color-primary-hover)",
-        secondary: "var(--color-secondary)",
-        "secondary-hover": "var(--color-secondary-hover)",
-        background: "var(--color-background)",
-        surface: "var(--color-surface)",
-        "text-primary": "var(--color-text-primary)",
-        "text-secondary": "var(--color-text-secondary)",
-        border: "var(--color-border)",
-        error: "var(--color-error)",
-        success: "var(--color-success)",
-        warning: "var(--color-warning)",
+        primary: {
+          DEFAULT: 'var(--color-primary)',
+          hover: 'var(--color-primary-hover)',
+        },
+        secondary: {
+          DEFAULT: 'var(--color-secondary)',
+          hover: 'var(--color-secondary-hover)',
+        },
+        accent: 'var(--color-accent)',
+        background: 'var(--color-background)',
+        surface: {
+          DEFAULT: 'var(--color-surface)',
+          hover: 'var(--color-surface-hover)',
+        },
+        text: {
+          primary: 'var(--color-text-primary)',
+          secondary: 'var(--color-text-secondary)',
+          disabled: 'var(--color-text-disabled)',
+        },
+        border: {
+          DEFAULT: 'var(--color-border)',
+          focus: 'var(--color-border-focus)',
+        },
+        success: 'var(--color-success)',
+        warning: 'var(--color-warning)',
+        error: 'var(--color-error)',
+        info: 'var(--color-info)',
       },
       spacing: {
-        xs: "var(--spacing-xs)",
-        sm: "var(--spacing-sm)",
-        md: "var(--spacing-md)",
-        lg: "var(--spacing-lg)",
-        xl: "var(--spacing-xl)",
+        xs: 'var(--spacing-xs)',
+        sm: 'var(--spacing-sm)',
+        md: 'var(--spacing-md)',
+        lg: 'var(--spacing-lg)',
+        xl: 'var(--spacing-xl)',
       },
       borderRadius: {
-        sm: "var(--radius-sm)",
-        md: "var(--radius-md)",
-        lg: "var(--radius-lg)",
+        sm: 'var(--radius-sm)',
+        md: 'var(--radius-md)',
+        lg: 'var(--radius-lg)',
+        xl: 'var(--radius-xl)',
+        full: 'var(--radius-full)',
+      },
+      boxShadow: {
+        sm: 'var(--shadow-sm)',
+        md: 'var(--shadow-md)',
+        lg: 'var(--shadow-lg)',
+      },
+      fontFamily: {
+        sans: 'var(--font-family-sans)',
+      },
+      fontSize: {
+        sm: 'var(--font-size-sm)',
+        base: 'var(--font-size-base)',
+        lg: 'var(--font-size-lg)',
+        xl: 'var(--font-size-xl)',
+        '2xl': 'var(--font-size-2xl)',
+      },
+      transitionDuration: {
+        fast: 'var(--transition-fast)',
+        normal: 'var(--transition-normal)',
       },
     },
   },

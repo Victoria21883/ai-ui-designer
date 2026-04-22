@@ -5,9 +5,11 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { getMockResponse } from '../../core/ai/mockData';
 import { useProjectStore } from '../../store/projectStore';
+import { useThemeStore } from '../../store/themeStore';
 import Canvas from '../../components/Canvas';
 import ComponentPalette from '../../components/ComponentPalette';
-import PropertyPanel from '../../components/PropertyPanel'; // ✅ ДОБАВЛЕН ИМПОРТ
+import PropertyPanel from '../../components/PropertyPanel';
+import ThemeToggle from '../../components/ThemeToggle';
 import type { MockResponse, MockComponent } from '../../core/ai/mockData';
 import type { UIComponent, ComponentType } from '../../types/types';
 import type { DragItem } from '../../types/dnd.types';
@@ -17,9 +19,9 @@ const EditorPage: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generatedJSON, setGeneratedJSON] = useState<MockResponse | null>(null);
-
   const [showTestButtons, setShowTestButtons] = useState(false);
 
+  // Zustand stores
   const {
     currentProject,
     setCurrentProject,
@@ -29,6 +31,8 @@ const EditorPage: React.FC = () => {
     selectComponent,
   } = useProjectStore();
 
+  useThemeStore();
+
   useEffect(() => {
     if (!currentProject) {
       generateNewProject('Новый проект', 'Проект создан из редактора');
@@ -36,17 +40,12 @@ const EditorPage: React.FC = () => {
   }, [currentProject, generateNewProject]);
 
   // ========== ФУНКЦИЯ ОБНОВЛЕНИЯ КОМПОНЕНТА ==========
-
-  /**
-   * Обновление свойств выбранного компонента
-   */
   const handleUpdateComponent = useCallback(
     (updates: Partial<UIComponent>) => {
       if (!currentProject || !selectedComponentId) return;
 
       console.log('🔄 Обновление компонента:', selectedComponentId, updates);
 
-      // Обновляем компонент через store
       const updateComponents = (components: UIComponent[]): UIComponent[] => {
         return components.map((comp) => {
           if (comp.id === selectedComponentId) {
@@ -69,14 +68,9 @@ const EditorPage: React.FC = () => {
     [currentProject, selectedComponentId, setCurrentProject, saveProject]
   );
 
-  // ✅ Находим выбранный компонент
   const selectedComponent = currentProject?.components.find((c) => c.id === selectedComponentId);
 
   // ========== ФУНКЦИИ ДЛЯ ПЕРЕМЕЩЕНИЯ ЭЛЕМЕНТОВ ==========
-
-  /**
-   * Получение пропсов по умолчанию для нового компонента
-   */
   const getDefaultProps = useCallback((type: ComponentType): Record<string, unknown> => {
     switch (type) {
       case 'button':
@@ -115,9 +109,6 @@ const EditorPage: React.FC = () => {
     }
   }, []);
 
-  /**
-   * Добавление нового компонента из палитры на холст
-   */
   const handleDropComponent = useCallback(
     (item: DragItem, position?: { x: number; y: number }) => {
       if (!currentProject || !item.componentType) {
@@ -279,7 +270,6 @@ const EditorPage: React.FC = () => {
   );
 
   // ========== ФУНКЦИИ ДЛЯ ПРЕОБРАЗОВАНИЯ МОКОВЫХ ДАННЫХ ==========
-
   const mapToComponentType = (type: string): ComponentType => {
     const validTypes: ComponentType[] = ['button', 'input', 'card', 'text', 'container', 'image'];
     return validTypes.includes(type as ComponentType) ? (type as ComponentType) : 'text';
@@ -359,7 +349,6 @@ const EditorPage: React.FC = () => {
   };
 
   // ========== ТЕСТОВЫЕ ФУНКЦИИ ==========
-
   const demoStates = {
     success: async () => {
       setIsGenerating(true);
@@ -440,6 +429,9 @@ const EditorPage: React.FC = () => {
               AI UI Designer
             </Link>
             <div className="flex items-center space-x-4">
+              {/* Переключатель темы */}
+              <ThemeToggle />
+
               {currentProject && (
                 <span className="text-sm text-text-secondary hidden md:inline">
                   Проект: {currentProject.name}
@@ -649,7 +641,7 @@ const EditorPage: React.FC = () => {
             )}
           </main>
 
-          {/* ✅ ПРАВАЯ ПАНЕЛЬ - СВОЙСТВА (ОБНОВЛЕНА) */}
+          {/* Правая панель - свойства */}
           <aside className="w-80 bg-surface border-l border-border p-4 overflow-y-auto">
             <PropertyPanel component={selectedComponent || null} onUpdate={handleUpdateComponent} />
           </aside>

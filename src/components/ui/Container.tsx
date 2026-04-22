@@ -1,4 +1,3 @@
-// src/components/ui/Container.tsx
 import React from 'react';
 
 interface ContainerProps {

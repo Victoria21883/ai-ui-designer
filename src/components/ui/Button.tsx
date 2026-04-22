@@ -10,13 +10,13 @@ interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
-  color?: string; // Добавлено
-  backgroundColor?: string; // Добавлено
-  width?: string; // Добавлено
-  height?: string; // Добавлено
-  margin?: string; // Добавлено
-  padding?: string; // Добавлено
-  borderRadius?: string; // Добавлено
+  color?: string;
+  backgroundColor?: string;
+  width?: string;
+  height?: string;
+  margin?: string;
+  padding?: string;
+  borderRadius?: string;
 }
 
 const Button: React.FC<ButtonProps> = ({

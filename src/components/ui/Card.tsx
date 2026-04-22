@@ -1,4 +1,3 @@
-// src/components/ui/Card.tsx
 import React from 'react';
 
 interface CardProps {
@@ -8,11 +7,11 @@ interface CardProps {
   title?: string;
   subtitle?: string;
   elevation?: 'none' | 'sm' | 'md' | 'lg';
-  backgroundColor?: string; // Добавлено
-  color?: string; // Добавлено
-  padding?: string; // Добавлено
-  margin?: string; // Добавлено
-  borderRadius?: string; // Добавлено
+  backgroundColor?: string;
+  color?: string;
+  padding?: string;
+  margin?: string;
+  borderRadius?: string;
 }
 
 const elevationClasses = {
