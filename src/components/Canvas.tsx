@@ -1,5 +1,5 @@
 // src/components/Canvas.tsx
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react'; // Добавили useState
 import { useDrop, useDrag } from 'react-dnd';
 import Renderer from './Renderer';
 import { DND_ITEM_TYPES } from '../types/dnd.types';
@@ -37,7 +37,6 @@ const Canvas: React.FC<CanvasProps> = ({
       accept: [DND_ITEM_TYPES.COMPONENT, DND_ITEM_TYPES.EXISTING_COMPONENT],
       drop: (item: DragItem, monitor) => {
         const dropPosition = monitor.getClientOffset();
-        // Здесь будет вызываться актуальная функция из пропсов
         onDropComponent?.(item, dropPosition || undefined);
       },
       collect: (monitor) => ({
@@ -45,7 +44,7 @@ const Canvas: React.FC<CanvasProps> = ({
         canDrop: !!monitor.canDrop(),
       }),
     }),
-    [onDropComponent, components] // ДОБАВЬТЕ ЭТИ ЗАВИСИМОСТИ
+    [onDropComponent]
   );
 
   // Применяем drop к dropRef через useEffect
@@ -69,6 +68,7 @@ const Canvas: React.FC<CanvasProps> = ({
               key={component.id}
               component={component}
               index={index}
+              totalComponents={components.length} // ДОБАВИЛИ: передаем общее количество
               onSelect={onSelectComponent}
               isSelected={selectedId === component.id}
               onMove={onMoveComponent}
@@ -95,6 +95,7 @@ const Canvas: React.FC<CanvasProps> = ({
 const DraggableComponentWrapper: React.FC<{
   component: UIComponent;
   index: number;
+  totalComponents?: number; // ДОБАВИЛИ: общее количество компонентов
   onSelect?: (id: string) => void;
   isSelected: boolean;
   onMove?: (dragId: string, hoverId: string) => void;
@@ -105,6 +106,7 @@ const DraggableComponentWrapper: React.FC<{
 }> = ({
   component,
   index,
+  totalComponents = 0,
   onSelect,
   isSelected,
   onMove,
@@ -116,6 +118,7 @@ const DraggableComponentWrapper: React.FC<{
   const dragRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const dropRef = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false); // ДОБАВИЛИ: состояние наведения
 
   // Настройка перетаскивания
   const [{ isDragging }, drag, preview] = useDrag(() => ({
@@ -135,6 +138,8 @@ const DraggableComponentWrapper: React.FC<{
     () => ({
       accept: DND_ITEM_TYPES.EXISTING_COMPONENT,
       hover: (item: DragItem) => {
+        if (!dragRef.current) return;
+
         const dragId = item.componentId;
         const hoverId = component.id;
         if (dragId === hoverId) return;
@@ -144,7 +149,7 @@ const DraggableComponentWrapper: React.FC<{
         isOver: !!monitor.isOver(),
       }),
     }),
-    [onMove, component.id] // ДОБАВЬТЕ ЗАВИСИМОСТИ
+    [onMove, component.id]
   );
 
   // Применяем drag, drop и preview через useEffect
@@ -180,13 +185,21 @@ const DraggableComponentWrapper: React.FC<{
     onMoveDown?.(component.id);
   };
 
+  // ДОБАВИЛИ: проверка возможности перемещения
+  const canMoveUp = index > 0;
+  const canMoveDown = index < totalComponents - 1;
+
   return (
     <div
       ref={previewRef}
       onClick={() => onSelect?.(component.id)}
-      className={`relative group cursor-move transition-all ${
+      onMouseEnter={() => setIsHovered(true)} // ДОБАВИЛИ
+      onMouseLeave={() => setIsHovered(false)} // ДОБАВИЛИ
+      className={`relative group transition-all ${
         isDragging ? 'opacity-50' : ''
-      } ${isSelected ? 'ring-2 ring-primary' : ''} ${isOver ? 'border-t-2 border-primary' : ''}`}
+      } ${isSelected ? 'ring-2 ring-primary ring-offset-2 rounded-lg' : ''} ${
+        isOver ? 'border-t-2 border-primary' : ''
+      }`}
     >
       {/* Drag область (невидимая, для перетаскивания) */}
       <div ref={dragRef} className="absolute inset-0 cursor-move" />
@@ -197,42 +210,55 @@ const DraggableComponentWrapper: React.FC<{
       {/* Рендерим сам компонент */}
       <Renderer component={component} />
 
-      {/* Контролы компонента */}
-      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button
-          onClick={handleMoveUp}
-          className="p-1 bg-white rounded shadow hover:bg-gray-100 text-sm"
-          title="Вверх"
-        >
-          ↑
-        </button>
-        <button
-          onClick={handleMoveDown}
-          className="p-1 bg-white rounded shadow hover:bg-gray-100 text-sm"
-          title="Вниз"
-        >
-          ↓
-        </button>
-        <button
-          onClick={handleDuplicate}
-          className="p-1 bg-white rounded shadow hover:bg-gray-100 text-sm"
-          title="Дублировать"
-        >
-          📋
-        </button>
-        <button
-          onClick={handleDelete}
-          className="p-1 bg-white rounded shadow hover:bg-red-100 text-red-600 text-sm"
-          title="Удалить"
-        >
-          🗑️
-        </button>
-      </div>
+      {/* Контролы компонента - появляются при наведении ИЛИ при выделении */}
+      {(isHovered || isSelected) && ( // ИЗМЕНИЛИ: добавили условие с isSelected
+        <div className="absolute top-2 right-2 flex gap-1 bg-white rounded-lg shadow-lg border border-gray-200 p-1 z-10">
+          {/* Кнопка вверх - отключается если нельзя */}
+          <button
+            onClick={handleMoveUp}
+            disabled={!canMoveUp}
+            className={`p-1 rounded text-sm transition-colors ${
+              !canMoveUp ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'
+            }`}
+            title="Вверх"
+          >
+            ↑
+          </button>
+          {/* Кнопка вниз - отключается если нельзя */}
+          <button
+            onClick={handleMoveDown}
+            disabled={!canMoveDown}
+            className={`p-1 rounded text-sm transition-colors ${
+              !canMoveDown ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'
+            }`}
+            title="Вниз"
+          >
+            ↓
+          </button>
+          <button
+            onClick={handleDuplicate}
+            className="p-1 rounded text-gray-600 hover:bg-gray-100 text-sm transition-colors"
+            title="Дублировать"
+          >
+            📋
+          </button>
+          <button
+            onClick={handleDelete}
+            className="p-1 rounded text-gray-600 hover:bg-red-100 hover:text-red-600 text-sm transition-colors"
+            title="Удалить"
+          >
+            🗑️
+          </button>
+        </div>
+      )}
 
       {/* Маркер перетаскивания */}
       <div className="absolute left-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
         <div className="p-1 bg-gray-200 rounded cursor-move text-xs">⋮⋮</div>
       </div>
+
+      {/* Левая подсветка при выделении */}
+      {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-l-lg" />}
     </div>
   );
 };

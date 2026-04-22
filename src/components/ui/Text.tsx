@@ -9,10 +9,16 @@ interface TextProps {
   className?: string;
   style?: React.CSSProperties;
   variant?: TextVariant;
+  color?: string; // Добавлено
+  backgroundColor?: string; // Добавлено
+  textAlign?: 'left' | 'center' | 'right' | 'justify'; // Добавлено
+  fontWeight?: string; // Добавлено
+  fontSize?: string; // Добавлено
+  margin?: string; // Добавлено
+  padding?: string; // Добавлено
 }
 
-// Маппинг вариантов на HTML теги - ВЫНЕСЕН ЗА ПРЕДЕЛЫ КОМПОНЕНТА
-const variantToComponent: Record<string, React.ElementType> = {
+const variantToTag: Record<string, React.ElementType> = {
   h1: 'h1',
   h2: 'h2',
   h3: 'h3',
@@ -22,18 +28,40 @@ const variantToComponent: Record<string, React.ElementType> = {
   p: 'p',
   span: 'span',
   div: 'div',
-  // Альтернативные названия
   body: 'p',
   header: 'h2',
   text: 'p',
 };
 
-const Text: React.FC<TextProps> = ({ content, children, className = '', style, variant = 'p' }) => {
-  // Просто получаем компонент из маппинга, не создаем новый
-  const Component = variantToComponent[variant] || variantToComponent.p;
+const Text: React.FC<TextProps> = ({
+  content,
+  children,
+  className = '',
+  style,
+  variant = 'p',
+  color,
+  backgroundColor,
+  textAlign,
+  fontWeight,
+  fontSize,
+  margin,
+  padding,
+}) => {
+  const Component = variantToTag[variant] || 'p';
+
+  const inlineStyles: React.CSSProperties = {
+    ...style,
+    ...(color && { color }),
+    ...(backgroundColor && { backgroundColor }),
+    ...(textAlign && { textAlign }),
+    ...(fontWeight && { fontWeight }),
+    ...(fontSize && { fontSize }),
+    ...(margin && { margin }),
+    ...(padding && { padding }),
+  };
 
   return (
-    <Component className={className} style={style}>
+    <Component className={className} style={inlineStyles}>
       {content || children}
     </Component>
   );
