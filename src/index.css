@@ -40,3 +40,72 @@
     @apply bg-surface border border-border rounded-lg p-6 shadow-sm;
   }
 }
+/* src/index.css - добавьте в конец файла */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.15s ease-out;
+}
+
+/* Стили для контролов при наведении */
+.group:hover .group-hover\:opacity-100 {
+  opacity: 1;
+}
+
+/* Стили для перетаскивания */
+.cursor-grab {
+  cursor: grab;
+}
+
+.cursor-grabbing {
+  cursor: grabbing;
+}
+
+/* Добавьте в конец файла src/index.css */
+
+/* Стили для полей ввода в панели свойств */
+input,
+textarea,
+select {
+  transition: all 0.2s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Стили для кнопок в панели */
+.property-panel button {
+  transition: all 0.2s ease;
+}
+
+/* Стили для скролла в панели свойств */
+aside::-webkit-scrollbar {
+  width: 6px;
+}
+
+aside::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+aside::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+aside::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}

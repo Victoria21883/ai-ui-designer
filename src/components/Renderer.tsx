@@ -78,6 +78,16 @@ const Renderer: React.FC<RendererProps> = ({ component, depth = 0 }) => {
   const finalProps: AnyProps = {
     ...props,
     className: styles?.className || props.className || '',
+    color: props.color,
+    backgroundColor: props.backgroundColor,
+    width: props.width,
+    height: props.height,
+    margin: props.margin,
+    padding: props.padding,
+    borderRadius: props.borderRadius,
+    textAlign: props.textAlign,
+    fontWeight: props.fontWeight,
+    fontSize: props.fontSize,
   };
 
   if (styles) {

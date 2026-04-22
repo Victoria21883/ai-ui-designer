@@ -7,6 +7,7 @@ import { getMockResponse } from '../../core/ai/mockData';
 import { useProjectStore } from '../../store/projectStore';
 import Canvas from '../../components/Canvas';
 import ComponentPalette from '../../components/ComponentPalette';
+import PropertyPanel from '../../components/PropertyPanel'; // ✅ ДОБАВЛЕН ИМПОРТ
 import type { MockResponse, MockComponent } from '../../core/ai/mockData';
 import type { UIComponent, ComponentType } from '../../types/types';
 import type { DragItem } from '../../types/dnd.types';
@@ -17,10 +18,8 @@ const EditorPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [generatedJSON, setGeneratedJSON] = useState<MockResponse | null>(null);
 
-  // Для тестирования разных состояний
   const [showTestButtons, setShowTestButtons] = useState(false);
 
-  // Используем store
   const {
     currentProject,
     setCurrentProject,
@@ -30,12 +29,48 @@ const EditorPage: React.FC = () => {
     selectComponent,
   } = useProjectStore();
 
-  // При первой загрузке создаем новый проект, если его нет
   useEffect(() => {
     if (!currentProject) {
       generateNewProject('Новый проект', 'Проект создан из редактора');
     }
   }, [currentProject, generateNewProject]);
+
+  // ========== ФУНКЦИЯ ОБНОВЛЕНИЯ КОМПОНЕНТА ==========
+
+  /**
+   * Обновление свойств выбранного компонента
+   */
+  const handleUpdateComponent = useCallback(
+    (updates: Partial<UIComponent>) => {
+      if (!currentProject || !selectedComponentId) return;
+
+      console.log('🔄 Обновление компонента:', selectedComponentId, updates);
+
+      // Обновляем компонент через store
+      const updateComponents = (components: UIComponent[]): UIComponent[] => {
+        return components.map((comp) => {
+          if (comp.id === selectedComponentId) {
+            return { ...comp, ...updates } as UIComponent;
+          }
+          if (comp.children) {
+            return { ...comp, children: updateComponents(comp.children) };
+          }
+          return comp;
+        });
+      };
+
+      setCurrentProject({
+        ...currentProject,
+        components: updateComponents(currentProject.components),
+        updatedAt: new Date(),
+      });
+      saveProject();
+    },
+    [currentProject, selectedComponentId, setCurrentProject, saveProject]
+  );
+
+  // ✅ Находим выбранный компонент
+  const selectedComponent = currentProject?.components.find((c) => c.id === selectedComponentId);
 
   // ========== ФУНКЦИИ ДЛЯ ПЕРЕМЕЩЕНИЯ ЭЛЕМЕНТОВ ==========
 
@@ -90,7 +125,6 @@ const EditorPage: React.FC = () => {
         return;
       }
 
-      // Создаем новый компонент с уникальным ID
       const newComponent: UIComponent = {
         id: `comp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         type: item.componentType,
@@ -100,28 +134,20 @@ const EditorPage: React.FC = () => {
       console.log('➕ Добавление нового компонента:', newComponent);
       console.log('Позиция сброса:', position);
 
-      // Добавляем компонент в конец списка
       const updatedComponents = [...currentProject.components, newComponent];
 
-      // Обновляем проект
       setCurrentProject({
         ...currentProject,
         components: updatedComponents,
         updatedAt: new Date(),
       });
 
-      // Сохраняем изменения
       saveProject();
-
-      // Опционально: автоматически выделяем новый компонент
       selectComponent(newComponent.id);
     },
     [currentProject, setCurrentProject, saveProject, selectComponent, getDefaultProps]
   );
 
-  /**
-   * Перемещение существующего компонента (drag & drop)
-   */
   const handleMoveComponent = useCallback(
     (dragId: string, hoverId: string) => {
       if (!currentProject) {
@@ -131,40 +157,31 @@ const EditorPage: React.FC = () => {
 
       console.log('🔄 Перемещение компонента:', { dragId, hoverId });
 
-      // Находим индексы перетаскиваемого и целевого компонентов
       const dragIndex = currentProject.components.findIndex((c) => c.id === dragId);
       const hoverIndex = currentProject.components.findIndex((c) => c.id === hoverId);
 
-      // Проверяем, что индексы найдены
       if (dragIndex === -1 || hoverIndex === -1) {
         console.warn('Компонент не найден');
         return;
       }
 
-      // Не перемещаем, если это тот же компонент
       if (dragIndex === hoverIndex) return;
 
-      // Создаем новый массив компонентов с перемещением
       const newComponents = [...currentProject.components];
       const [draggedComponent] = newComponents.splice(dragIndex, 1);
       newComponents.splice(hoverIndex, 0, draggedComponent);
 
-      // Обновляем проект
       setCurrentProject({
         ...currentProject,
         components: newComponents,
         updatedAt: new Date(),
       });
 
-      // Сохраняем изменения
       saveProject();
     },
     [currentProject, setCurrentProject, saveProject]
   );
 
-  /**
-   * Удаление компонента
-   */
   const handleDeleteComponent = useCallback(
     (id: string) => {
       if (!currentProject) return;
@@ -180,7 +197,6 @@ const EditorPage: React.FC = () => {
       });
       saveProject();
 
-      // Если удалили выбранный компонент, снимаем выделение
       if (selectedComponentId === id) {
         selectComponent(null);
       }
@@ -188,9 +204,6 @@ const EditorPage: React.FC = () => {
     [currentProject, setCurrentProject, saveProject, selectedComponentId, selectComponent]
   );
 
-  /**
-   * Дублирование компонента
-   */
   const handleDuplicateComponent = useCallback(
     (id: string) => {
       if (!currentProject) return;
@@ -200,13 +213,11 @@ const EditorPage: React.FC = () => {
 
       console.log('📋 Дублирование компонента:', id);
 
-      // Создаем копию с новым ID
       const newComponent: UIComponent = {
         ...componentToDuplicate,
         id: `comp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       };
 
-      // Находим индекс оригинального компонента и вставляем после него
       const index = currentProject.components.findIndex((c) => c.id === id);
       const newComponents = [...currentProject.components];
       newComponents.splice(index + 1, 0, newComponent);
@@ -221,15 +232,12 @@ const EditorPage: React.FC = () => {
     [currentProject, setCurrentProject, saveProject]
   );
 
-  /**
-   * Перемещение компонента вверх
-   */
   const handleMoveUp = useCallback(
     (id: string) => {
       if (!currentProject) return;
 
       const index = currentProject.components.findIndex((c) => c.id === id);
-      if (index <= 0) return; // Уже первый или не найден
+      if (index <= 0) return;
 
       const newComponents = [...currentProject.components];
       [newComponents[index - 1], newComponents[index]] = [
@@ -247,15 +255,12 @@ const EditorPage: React.FC = () => {
     [currentProject, setCurrentProject, saveProject]
   );
 
-  /**
-   * Перемещение компонента вниз
-   */
   const handleMoveDown = useCallback(
     (id: string) => {
       if (!currentProject) return;
 
       const index = currentProject.components.findIndex((c) => c.id === id);
-      if (index === -1 || index === currentProject.components.length - 1) return; // Последний или не найден
+      if (index === -1 || index === currentProject.components.length - 1) return;
 
       const newComponents = [...currentProject.components];
       [newComponents[index], newComponents[index + 1]] = [
@@ -275,15 +280,12 @@ const EditorPage: React.FC = () => {
 
   // ========== ФУНКЦИИ ДЛЯ ПРЕОБРАЗОВАНИЯ МОКОВЫХ ДАННЫХ ==========
 
-  // Функция для преобразования строки типа в ComponentType
   const mapToComponentType = (type: string): ComponentType => {
     const validTypes: ComponentType[] = ['button', 'input', 'card', 'text', 'container', 'image'];
     return validTypes.includes(type as ComponentType) ? (type as ComponentType) : 'text';
   };
 
-  // Функция для преобразования MockComponent в UIComponent
   const transformMockToComponent = (mock: MockComponent, index: number): UIComponent => {
-    // Сохраняем Tailwind классы как className в props для временного решения
     const props = mock.props || {};
     if (mock.style) {
       props.className = mock.style;
@@ -295,7 +297,6 @@ const EditorPage: React.FC = () => {
       props: props,
     };
 
-    // Рекурсивно обрабатываем children, если они есть
     if (mock.children && Array.isArray(mock.children)) {
       return {
         ...baseComponent,
@@ -308,15 +309,12 @@ const EditorPage: React.FC = () => {
     return baseComponent;
   };
 
-  // Функция для преобразования MockResponse в UIComponent[]
   const transformMockToComponents = (mockData: MockResponse): UIComponent[] => {
     if (!mockData || !mockData.children) return [];
     return mockData.children.map((child: MockComponent, index: number) =>
       transformMockToComponent(child, index)
     );
   };
-
-  // ========== ОБРАБОТЧИК ГЕНЕРАЦИИ ==========
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -330,16 +328,13 @@ const EditorPage: React.FC = () => {
     try {
       console.log('Генерируем для промпта:', prompt);
 
-      // Имитация задержки сети
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // Получаем моковый ответ
       const mockResponse = getMockResponse(prompt);
       console.log('Моковый ответ:', mockResponse);
 
       setGeneratedJSON(mockResponse);
 
-      // Сохраняем в store
       if (currentProject) {
         const components = transformMockToComponents(mockResponse);
         console.log('Преобразованные компоненты:', components);
@@ -433,8 +428,7 @@ const EditorPage: React.FC = () => {
     },
   };
 
-  // Используем generatedJSON для отображения в интерфейсе (добавим панель с JSON)
-  const showJSONPreview = generatedJSON && showTestButtons; // Показываем JSON только в тестовом режиме
+  const showJSONPreview = generatedJSON && showTestButtons;
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -476,7 +470,7 @@ const EditorPage: React.FC = () => {
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
-                  placeholder="Опишите интерфейс... (например: 'Сделай страницу входа с формой и кнопкой')"
+                  placeholder="Опишите интерфейс..."
                   className="input flex-1"
                   disabled={isGenerating}
                 />
@@ -597,7 +591,6 @@ const EditorPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Панель с JSON (только в тестовом режиме) */}
               {showJSONPreview && (
                 <div className="mt-4 p-4 bg-gray-800 border border-gray-700 rounded">
                   <div className="flex justify-between items-center mb-2">
@@ -656,19 +649,9 @@ const EditorPage: React.FC = () => {
             )}
           </main>
 
-          {/* Правая панель - свойства */}
+          {/* ✅ ПРАВАЯ ПАНЕЛЬ - СВОЙСТВА (ОБНОВЛЕНА) */}
           <aside className="w-80 bg-surface border-l border-border p-4 overflow-y-auto">
-            <h3 className="font-semibold mb-4">Свойства</h3>
-            <div className="text-text-secondary text-sm">
-              {selectedComponentId ? (
-                <div>
-                  <p className="text-primary">Выбран компонент: {selectedComponentId}</p>
-                  <p className="mt-2 text-xs">Здесь будет редактор свойств</p>
-                </div>
-              ) : (
-                <p>Выберите компонент на холсте для редактирования свойств</p>
-              )}
-            </div>
+            <PropertyPanel component={selectedComponent || null} onUpdate={handleUpdateComponent} />
           </aside>
         </div>
       </div>
