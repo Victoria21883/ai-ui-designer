@@ -13,6 +13,8 @@ import HistoryPanel from '../../components/HistoryPanel';
 import type { MockResponse, MockComponent } from '../../core/ai/mockData';
 import type { UIComponent, ComponentType } from '../../types/types';
 import type { DragItem } from '../../types/dnd.types';
+import { generateFullHTML } from '../../utils/htmlExporter';
+import HTMLPreviewModal from '../../components/HTMLPreviewModal';
 
 const EditorPage: React.FC = () => {
   const [prompt, setPrompt] = useState('');
@@ -21,6 +23,7 @@ const EditorPage: React.FC = () => {
   const [generatedJSON, setGeneratedJSON] = useState<MockResponse | null>(null);
   const [showTestButtons, setShowTestButtons] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showHTMLPreview, setShowHTMLPreview] = useState(false);
 
   const {
     currentProject,
@@ -46,7 +49,6 @@ const EditorPage: React.FC = () => {
         const { undo, canUndo } = useProjectStore.getState();
         if (canUndo) undo();
       }
-      // Ctrl+Y или Ctrl+Shift+Z - Redo
       if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
         e.preventDefault();
         const { redo, canRedo } = useProjectStore.getState();
@@ -316,6 +318,41 @@ const EditorPage: React.FC = () => {
     [currentProject, setCurrentProject, saveProject]
   );
 
+  // ✅ ДОБАВЬТЕ СЮДА функцию экспорта
+  const handleExportHTML = useCallback(() => {
+    if (!currentProject) {
+      setError('Нет проекта для экспорта');
+      return;
+    }
+    setShowHTMLPreview(true);
+  }, [currentProject]);
+
+  // Функция для быстрого экспорта без превью (опционально)
+  const handleQuickExport = useCallback(() => {
+    if (!currentProject) {
+      setError('Нет проекта для экспорта');
+      return;
+    }
+
+    try {
+      const html = generateFullHTML(currentProject.components, currentProject.name);
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentProject.name || 'project'}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      console.log('✅ HTML экспортирован успешно');
+    } catch (err) {
+      console.error('Ошибка при экспорте HTML:', err);
+      setError('Ошибка при экспорте HTML');
+    }
+  }, [currentProject]);
+
   // ========== ФУНКЦИИ ДЛЯ ПРЕОБРАЗОВАНИЯ МОКОВЫХ ДАННЫХ ==========
   const mapToComponentType = (type: string): ComponentType => {
     const validTypes: ComponentType[] = ['button', 'input', 'card', 'text', 'container', 'image'];
@@ -499,7 +536,27 @@ const EditorPage: React.FC = () => {
               <Link to="/preview/current">
                 <button className="btn-secondary">Предпросмотр</button>
               </Link>
-              <button className="btn-primary">Экспорт</button>
+
+              <div className="relative group">
+                <button className="btn-primary flex items-center gap-2">
+                  📤 Экспорт
+                  <span className="text-xs">▼</span>
+                </button>
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                  <button
+                    onClick={handleExportHTML}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg flex items-center gap-2"
+                  >
+                    👁️ Предпросмотр перед экспортом
+                  </button>
+                  <button
+                    onClick={handleQuickExport}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-b-lg flex items-center gap-2"
+                  >
+                    ⚡ Быстрый экспорт
+                  </button>
+                </div>
+              </div>
               <button
                 onClick={() => setShowHistory(!showHistory)}
                 className={`p-2 rounded-lg transition-colors ${
@@ -671,12 +728,22 @@ const EditorPage: React.FC = () => {
             <ComponentPalette />
 
             {currentProject && (
-              <div className="mt-6 p-3 bg-primary/5 rounded border border-primary/20">
-                <h4 className="text-xs font-semibold text-primary mb-1">Текущий проект</h4>
-                <p className="text-xs text-text-secondary truncate">{currentProject.name}</p>
-                <p className="text-xs text-text-secondary mt-1">
-                  Компонентов: {currentProject.components.length}
-                </p>
+              <div className="mt-6 space-y-2">
+                <div className="p-3 bg-primary/5 rounded border border-primary/20">
+                  <h4 className="text-xs font-semibold text-primary mb-1">Текущий проект</h4>
+                  <p className="text-xs text-text-secondary truncate">{currentProject.name}</p>
+                  <p className="text-xs text-text-secondary mt-1">
+                    Компонентов: {currentProject.components.length}
+                  </p>
+                </div>
+
+                {/* Кнопка быстрого экспорта */}
+                <button
+                  onClick={handleQuickExport}
+                  className="w-full py-2 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  💾 Экспорт в HTML
+                </button>
               </div>
             )}
           </aside>
@@ -715,6 +782,14 @@ const EditorPage: React.FC = () => {
           </aside>
         </div>
       </div>
+
+      {/* ✅ Модальное окно с превью - в конце, после закрывающего div */}
+      <HTMLPreviewModal
+        isOpen={showHTMLPreview}
+        onClose={() => setShowHTMLPreview(false)}
+        components={currentProject?.components || []}
+        projectName={currentProject?.name || 'project'}
+      />
     </DndProvider>
   );
 };
