@@ -1,5 +1,3 @@
-// src/types.ts
-
 export type ComponentType = 'button' | 'input' | 'card' | 'text' | 'container' | 'image';
 
 export interface UIComponent {
@@ -7,6 +5,7 @@ export interface UIComponent {
   type: ComponentType;
   props: Record<string, unknown>; // Используем unknown для безопасности
   children?: UIComponent[];
+  styles?: Record<string, string>;
 }
 
 export interface Theme {
