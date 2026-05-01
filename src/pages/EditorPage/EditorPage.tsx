@@ -15,6 +15,8 @@ import type { UIComponent, ComponentType } from '../../types/types';
 import type { DragItem } from '../../types/dnd.types';
 import { generateFullHTML } from '../../utils/htmlExporter';
 import HTMLPreviewModal from '../../components/HTMLPreviewModal';
+import FigmaExportButton from '../../components/FigmaExportButton';
+import FigmaInstructions from '../../components/FigmaInstructions';
 
 const EditorPage: React.FC = () => {
   const [prompt, setPrompt] = useState('');
@@ -522,6 +524,9 @@ const EditorPage: React.FC = () => {
             <div className="flex items-center space-x-4">
               <ThemeToggle />
               <HistoryControls />
+
+              <FigmaInstructions />
+
               {currentProject && (
                 <span className="text-sm text-text-secondary hidden md:inline">
                   Проект: {currentProject.name}
@@ -555,6 +560,19 @@ const EditorPage: React.FC = () => {
                   >
                     ⚡ Быстрый экспорт
                   </button>
+                  <hr className="my-1 border-gray-200" />
+                  <div className="px-4 py-2 text-sm text-gray-500">Экспорт в Figma:</div>
+                  <div className="px-3 pb-2">
+                    <FigmaExportButton
+                      key={currentProject?.components.length} // ← добавить key
+                      components={currentProject?.components || []}
+                      projectName={currentProject?.name || 'project'}
+                    />
+                  </div>
+                  {/* 👇 ДОБАВЬТЕ ССЫЛКУ НА ИНСТРУКЦИЮ */}
+                  <div className="px-3 pb-2 pt-1 border-t border-gray-100 mt-1">
+                    <FigmaInstructions />
+                  </div>
                 </div>
               </div>
               <button
@@ -726,6 +744,10 @@ const EditorPage: React.FC = () => {
           {/* Левая панель - компоненты */}
           <aside className="w-64 bg-surface border-r border-border p-4 overflow-y-auto">
             <ComponentPalette />
+
+            <div className="mt-6">
+              <FigmaInstructions />
+            </div>
 
             {currentProject && (
               <div className="mt-6 space-y-2">
