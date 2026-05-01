@@ -1,0 +1,14 @@
+{
+  "name": "AI UI Designer Export",
+  "id": "ai-ui-designer-export",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["https://localhost:5173", "http://localhost:5173"],
+    "reasoning": "Для получения данных из основного приложения"
+  }
+}
