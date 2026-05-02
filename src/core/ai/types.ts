@@ -1,7 +1,4 @@
-// src/core/ai/types.ts
-
-// Типы для запросов к AI
-export type AIModel = 'gpt-4' | 'gpt-3.5-turbo' | 'claude-3';
+export type AIModel = 'gpt-4' | 'gpt-3.5-turbo' | 'gemini-2.5-flash' | 'gemini-2.5-pro';
 
 export interface AIRequestOptions {
   model?: AIModel;
@@ -24,7 +21,6 @@ export interface AIResponse {
   model?: string;
 }
 
-// Типы для конфигурации
 export interface AIConfig {
   apiKey: string;
   baseUrl?: string;
@@ -32,7 +28,6 @@ export interface AIConfig {
   defaultTemperature?: number;
 }
 
-// Тип для ошибки (не класс!)
 export type AIErrorType = {
   message: string;
   code: string;

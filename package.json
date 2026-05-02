@@ -17,6 +17,7 @@
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^19.2.0",
+    "react-dropzone": "^15.0.0",
     "react-router-dom": "^7.13.1",
     "zustand": "^5.0.11"
   },
@@ -28,6 +29,7 @@
     "@types/react-dnd": "^2.0.36",
     "@types/react-dnd-html5-backend": "^3.0.2",
     "@types/react-dom": "^19.2.3",
+    "@types/react-dropzone": "^4.2.2",
     "@types/react-router-dom": "^5.3.3",
     "@typescript-eslint/eslint-plugin": "^8.56.1",
     "@typescript-eslint/parser": "^8.56.1",
