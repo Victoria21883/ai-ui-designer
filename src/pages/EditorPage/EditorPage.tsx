@@ -1,4 +1,3 @@
-// src/pages/EditorPage/EditorPage.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { DndProvider } from 'react-dnd';
