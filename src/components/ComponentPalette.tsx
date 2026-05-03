@@ -1,10 +1,8 @@
-// src/components/ComponentPalette.tsx
 import React, { useRef, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
 import { DND_ITEM_TYPES } from '../types/dnd.types';
 import type { ComponentType } from '../types/types';
 
-// Компонент для перетаскивания
 const DraggableComponent: React.FC<{ type: ComponentType; label: string }> = ({ type, label }) => {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -16,7 +14,6 @@ const DraggableComponent: React.FC<{ type: ComponentType; label: string }> = ({ 
     }),
   });
 
-  // Применяем drag к ref после рендера
   useEffect(() => {
     if (ref.current) {
       drag(ref.current);

@@ -1,7 +1,5 @@
-// src/utils/htmlExporter.ts
 import type { UIComponent } from '../types/types';
 
-// Типы пропсов для разных компонентов
 interface ButtonProps {
   text?: string;
   className?: string;
@@ -46,9 +44,6 @@ interface ImageProps {
   className?: string;
 }
 
-/**
- * Рекурсивно преобразует UIComponent в HTML строку
- */
 export function generateHTML(components: UIComponent[]): string {
   if (!components || components.length === 0) {
     return '<div class="text-center text-gray-400 py-12">✨ Холст пуст</div>';
@@ -57,19 +52,13 @@ export function generateHTML(components: UIComponent[]): string {
   return components.map((component) => renderComponent(component)).join('\n');
 }
 
-/**
- * Рендерит один компонент в HTML строку
- */
 function renderComponent(component: UIComponent): string {
   const { type, props = {}, children, styles } = component;
 
-  // Базовые классы из пропсов
   let className = (props.className as string) || '';
 
-  // Добавляем стили из styles
   const styleAttr = styles ? objectToInlineStyles(styles as Record<string, string>) : '';
 
-  // Добавляем дополнительные классы в зависимости от типа
   className = addBaseClasses(type, className);
 
   switch (type) {
@@ -101,9 +90,6 @@ function renderComponent(component: UIComponent): string {
   }
 }
 
-/**
- * Рендерит кнопку
- */
 function renderButton(props: ButtonProps, className: string, styleAttr: string): string {
   const { text, disabled } = props;
   const disabledAttr = disabled ? ' disabled' : '';
@@ -113,9 +99,6 @@ function renderButton(props: ButtonProps, className: string, styleAttr: string):
 </button>`;
 }
 
-/**
- * Рендерит текст
- */
 function renderText(props: TextProps, className: string, styleAttr: string): string {
   const { content, variant = 'p' } = props;
   const tag = getTextTag(variant);
@@ -126,9 +109,6 @@ function renderText(props: TextProps, className: string, styleAttr: string): str
 </${tag}>`;
 }
 
-/**
- * Рендерит поле ввода
- */
 function renderInput(props: InputProps, className: string, styleAttr: string): string {
   const { placeholder = '', type = 'text', label = '' } = props;
 
@@ -143,9 +123,6 @@ function renderInput(props: InputProps, className: string, styleAttr: string): s
   return html;
 }
 
-/**
- * Рендерит карточку
- */
 function renderCard(
   props: CardProps,
   className: string,
@@ -173,9 +150,6 @@ function renderCard(
   return html;
 }
 
-/**
- * Рендерит контейнер
- */
 function renderContainer(
   props: ContainerProps,
   className: string,
@@ -193,9 +167,6 @@ function renderContainer(
   return html;
 }
 
-/**
- * Рендерит изображение
- */
 function renderImage(props: ImageProps, className: string, styleAttr: string): string {
   const { src = 'https://via.placeholder.com/150', alt = 'Изображение', width, height } = props;
 
@@ -205,9 +176,6 @@ function renderImage(props: ImageProps, className: string, styleAttr: string): s
   return `<img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" class="${className}"${widthAttr}${heightAttr}${styleAttr ? ` style="${styleAttr}"` : ''}>`;
 }
 
-/**
- * Определяет HTML тег для текста
- */
 function getTextTag(variant: string): string {
   const tagMap: Record<string, string> = {
     h1: 'h1',
@@ -224,9 +192,6 @@ function getTextTag(variant: string): string {
   return tagMap[variant] || 'p';
 }
 
-/**
- * Добавляет базовые классы в зависимости от типа компонента
- */
 function addBaseClasses(type: string, existingClasses: string): string {
   const baseClasses: string[] = existingClasses ? existingClasses.split(' ') : [];
 
@@ -276,9 +241,6 @@ function addBaseClasses(type: string, existingClasses: string): string {
   return baseClasses.join(' ');
 }
 
-/**
- * Преобразует объект стилей в строку для HTML
- */
 function objectToInlineStyles(styles: Record<string, string>): string {
   const styleEntries = Object.entries(styles)
     .filter(([, value]) => value !== undefined && value !== '')
@@ -291,9 +253,6 @@ function objectToInlineStyles(styles: Record<string, string>): string {
   return styleEntries.join('; ');
 }
 
-/**
- * Экранирует HTML специальные символы
- */
 function escapeHtml(text: string): string {
   const htmlEntities: Record<string, string> = {
     '&': '&amp;',
@@ -306,9 +265,6 @@ function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (char) => htmlEntities[char] || char);
 }
 
-/**
- * Генерирует полный HTML документ
- */
 export function generateFullHTML(
   components: UIComponent[],
   title: string = 'AI UI Designer'

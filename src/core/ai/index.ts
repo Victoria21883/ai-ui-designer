@@ -1,10 +1,8 @@
-// src/core/ai/index.ts
 import axios from 'axios';
 import type { AxiosInstance as AxiosInstanceType, AxiosError } from 'axios';
 import type { AIRequest, AIResponse } from './types';
 import { createAIError } from './errors';
 
-// Описываем структуру ошибки, которую присылает Google
 interface GeminiErrorResponse {
   error: {
     message: string;
@@ -58,7 +56,6 @@ class AIService {
         model: this.model,
       };
     } catch (error) {
-      // ✅ ИСПРАВЛЕНО: типизация ошибки без использования any
       const axiosError = error as AxiosError<GeminiErrorResponse>;
       const status = axiosError.response?.status;
       const msg = axiosError.response?.data?.error?.message || 'Ошибка Gemini';
@@ -97,7 +94,6 @@ class AIService {
         model: this.model,
       };
     } catch (error) {
-      // ✅ ИСПРАВЛЕНО: типизация ошибки без использования any
       const axiosError = error as AxiosError<GeminiErrorResponse>;
       const msg = axiosError.response?.data?.error?.message || 'Ошибка Vision';
       throw createAIError(msg, 'VISION_ERROR');

@@ -1,4 +1,3 @@
-// src/store/projectStore.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { UIComponent } from '../types/types';
@@ -43,17 +42,14 @@ interface ProjectState {
   isLoading: boolean;
   error: string | null;
 
-  // История
   history: HistoryEntry[];
   historyIndex: number;
   canUndo: boolean;
   canRedo: boolean;
 
-  // Флаг для группировки действий
   isBatching: boolean;
   batchedDescription: string | null;
 
-  // Основные действия
   setCurrentProject: (project: Project | null) => void;
   updateProject: (updates: Partial<Project>) => void;
   addComponent: (component: UIComponent) => void;
@@ -66,14 +62,12 @@ interface ProjectState {
   setError: (error: string | null) => void;
   setLoading: (isLoading: boolean) => void;
 
-  // История
   undo: () => void;
   redo: () => void;
   saveToHistory: (description: string, force?: boolean) => void;
   clearHistory: () => void;
   setHistory: (history: HistoryEntry[]) => void; // ✅ ДОБАВЛЕНО
 
-  // Группировка действий
   startBatch: (description: string) => void;
   endBatch: () => void;
 }
@@ -97,8 +91,6 @@ export const useProjectStore = create<ProjectState>()(
       isBatching: false,
       batchedDescription: null,
 
-      // ========== ОСНОВНЫЕ ДЕЙСТВИЯ ==========
-
       setCurrentProject: (project) => {
         set({ currentProject: project });
       },
@@ -120,7 +112,6 @@ export const useProjectStore = create<ProjectState>()(
         const state = get();
         if (!state.currentProject) return;
 
-        // Если не в режиме батчинга, сохраняем в историю
         if (!state.isBatching) {
           state.saveToHistory(`➕ Добавлен компонент: ${component.type}`);
         }
@@ -141,7 +132,6 @@ export const useProjectStore = create<ProjectState>()(
         const component = state.currentProject.components.find((c) => c.id === id);
         if (!component) return;
 
-        // Если не в режиме батчинга, сохраняем в историю
         if (!state.isBatching) {
           state.saveToHistory(`✏️ Обновлен компонент: ${component.type}`);
         }
@@ -169,7 +159,6 @@ export const useProjectStore = create<ProjectState>()(
 
         const component = state.currentProject.components.find((c) => c.id === id);
 
-        // Если не в режиме батчинга, сохраняем в историю
         if (!state.isBatching) {
           state.saveToHistory(
             component ? `🗑️ Удален компонент: ${component.type}` : '🗑️ Удален компонент'
@@ -248,14 +237,11 @@ export const useProjectStore = create<ProjectState>()(
       setError: (error) => set({ error }),
       setLoading: (isLoading) => set({ isLoading }),
 
-      // ========== ИСТОРИЯ ==========
-
       saveToHistory: (description: string, force = false) => {
         const { currentProject, history, historyIndex, isBatching, batchedDescription } = get();
 
         if (!currentProject) return;
 
-        // Если в режиме батчинга и не force, накапливаем описание
         if (isBatching && !force) {
           const newDescription = batchedDescription
             ? `${batchedDescription} → ${description}`
@@ -264,7 +250,6 @@ export const useProjectStore = create<ProjectState>()(
           return;
         }
 
-        // Создаем глубокую копию текущего проекта
         const snapshot: Project = JSON.parse(JSON.stringify(currentProject));
 
         const finalDescription = batchedDescription || description;
@@ -276,13 +261,10 @@ export const useProjectStore = create<ProjectState>()(
           description: finalDescription,
         };
 
-        // Удаляем все состояния после текущего индекса
         const newHistory = history.slice(0, historyIndex + 1);
 
-        // Добавляем новое состояние
         newHistory.push(newEntry);
 
-        // Ограничиваем размер истории
         while (newHistory.length > MAX_HISTORY_SIZE) {
           newHistory.shift();
         }
@@ -347,12 +329,9 @@ export const useProjectStore = create<ProjectState>()(
         });
       },
 
-      // ✅ ДОБАВЛЕНО: Функция для прямого обновления истории
       setHistory: (history) => {
         set({ history });
       },
-
-      // ========== ГРУППИРОВКА ДЕЙСТВИЙ ==========
 
       startBatch: (description: string) => {
         set({

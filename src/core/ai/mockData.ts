@@ -1,12 +1,8 @@
-// src/core/ai/mockData.ts
-
-// Тип для макета страницы
 export interface MockLayout {
   type: 'page';
   children: MockComponent[];
 }
 
-// Тип для компонента в моковых данных
 export interface MockComponent {
   type: string;
   text?: string;
@@ -15,7 +11,6 @@ export interface MockComponent {
   children?: MockComponent[];
 }
 
-// Моковые данные для тестирования без реального API
 export const mockAIResponses: Record<string, MockLayout> = {
   'страница входа': {
     type: 'page',
@@ -165,12 +160,9 @@ export const mockAIResponses: Record<string, MockLayout> = {
   },
 };
 
-// Тип для возвращаемого значения функции getMockResponse
 export type MockResponse = MockLayout;
 
-// Функция для получения мокового ответа
 export const getMockResponse = (prompt: string): MockLayout => {
-  // Ищем ключевые слова в промпте
   const lowerPrompt = prompt.toLowerCase();
 
   if (lowerPrompt.includes('вход') || lowerPrompt.includes('логин')) {
@@ -181,12 +173,10 @@ export const getMockResponse = (prompt: string): MockLayout => {
     return mockAIResponses['карточка товара'];
   }
 
-  // ✅ ДОБАВЛЕНО: обработка для регистрации
   if (lowerPrompt.includes('регистрация') || lowerPrompt.includes('регистр')) {
     return mockAIResponses['форма регистрации'];
   }
 
-  // Возвращаем простой ответ по умолчанию
   return {
     type: 'page',
     children: [

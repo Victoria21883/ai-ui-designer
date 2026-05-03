@@ -1,4 +1,3 @@
-// src/components/PropertyPanel.tsx
 import React from 'react';
 import type { UIComponent } from '../types/types';
 
@@ -25,19 +24,33 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({ component, onUpdate }) =>
     onUpdate({ props: { ...currentProps, [key]: value } });
   };
 
-  // Общие поля для всех компонентов (цвет, размер, отступы)
   const renderCommonFields = () => (
     <div className="space-y-4 border-t border-border pt-4 mt-4">
-      <h4 className="text-sm font-medium mb-3">Стилизация</h4>
+      <h4 className="text-sm font-medium mb-3 text-primary uppercase tracking-wider text-[10px]">
+        Стилизация и размеры
+      </h4>
 
-      {/* Цвет текста */}
+      <div className="grid grid-cols-2 gap-2">
+        <TextField
+          label="Ширина (W)"
+          value={(currentProps.width as string) || ''}
+          onChange={(val) => handleChange('width', val)}
+          placeholder="100% или 200px"
+        />
+        <TextField
+          label="Высота (H)"
+          value={(currentProps.height as string) || ''}
+          onChange={(val) => handleChange('height', val)}
+          placeholder="auto или 200px"
+        />
+      </div>
+
       <ColorField
         label="Цвет текста"
         value={(currentProps.color as string) || '#000000'}
         onChange={(val) => handleChange('color', val)}
       />
 
-      {/* Цвет фона */}
       <ColorField
         label="Цвет фона"
         value={(currentProps.backgroundColor as string) || '#ffffff'}
@@ -45,253 +58,79 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({ component, onUpdate }) =>
       />
 
       <div className="grid grid-cols-2 gap-2">
-        {/* Ширина */}
         <TextField
-          label="Ширина"
-          value={(currentProps.width as string) || ''}
-          onChange={(val) => handleChange('width', val)}
-          placeholder="auto / 100% / 200px"
-        />
-
-        {/* Высота */}
-        <TextField
-          label="Высота"
-          value={(currentProps.height as string) || ''}
-          onChange={(val) => handleChange('height', val)}
-          placeholder="auto / 100% / 200px"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-2">
-        {/* Внешний отступ (margin) */}
-        <TextField
-          label="Внешний отступ"
+          label="Margin (Внешний)"
           value={(currentProps.margin as string) || ''}
           onChange={(val) => handleChange('margin', val)}
-          placeholder="0 / 4px / 1rem"
+          placeholder="10px"
         />
-
-        {/* Внутренний отступ (padding) */}
         <TextField
-          label="Внутренний отступ"
+          label="Padding (Внутр.)"
           value={(currentProps.padding as string) || ''}
           onChange={(val) => handleChange('padding', val)}
-          placeholder="0 / 4px / 1rem"
+          placeholder="10px"
         />
       </div>
 
-      {/* Скругление углов */}
       <TextField
-        label="Скругление углов"
+        label="Скругление (px)"
         value={(currentProps.borderRadius as string) || ''}
         onChange={(val) => handleChange('borderRadius', val)}
-        placeholder="0 / 4px / 8px / 9999px"
+        placeholder="8"
       />
     </div>
   );
 
   const renderFields = () => {
     switch (component.type) {
-      case 'button':
-        return (
-          <div className="space-y-4">
-            {/* Текст кнопки */}
-            <TextField
-              label="Текст кнопки"
-              value={(currentProps.text as string) || ''}
-              onChange={(val) => handleChange('text', val)}
-              placeholder="Например: Нажми меня"
-            />
-
-            <SelectField
-              label="Вариант"
-              value={(currentProps.variant as string) || 'primary'}
-              options={[
-                { value: 'primary', label: 'Основная' },
-                { value: 'secondary', label: 'Вторичная' },
-                { value: 'outline', label: 'Контурная' },
-              ]}
-              onChange={(val) => handleChange('variant', val)}
-            />
-
-            <SelectField
-              label="Размер"
-              value={(currentProps.size as string) || 'md'}
-              options={[
-                { value: 'sm', label: 'Маленькая' },
-                { value: 'md', label: 'Средняя' },
-                { value: 'lg', label: 'Большая' },
-              ]}
-              onChange={(val) => handleChange('size', val)}
-            />
-
-            {renderCommonFields()}
-          </div>
-        );
-
-      case 'text':
-        return (
-          <div className="space-y-4">
-            {/* Текст */}
-            <TextField
-              label="Текст"
-              value={(currentProps.content as string) || ''}
-              onChange={(val) => handleChange('content', val)}
-              placeholder="Введите текст..."
-              multiline
-            />
-
-            <SelectField
-              label="Размер заголовка"
-              value={(currentProps.variant as string) || 'p'}
-              options={[
-                { value: 'h1', label: 'H1 - Самый большой' },
-                { value: 'h2', label: 'H2 - Очень большой' },
-                { value: 'h3', label: 'H3 - Большой' },
-                { value: 'p', label: 'P - Обычный' },
-                { value: 'span', label: 'Span - Маленький' },
-              ]}
-              onChange={(val) => handleChange('variant', val)}
-            />
-
-            {/* Выравнивание текста */}
-            <SelectField
-              label="Выравнивание"
-              value={(currentProps.textAlign as string) || 'left'}
-              options={[
-                { value: 'left', label: 'По левому краю' },
-                { value: 'center', label: 'По центру' },
-                { value: 'right', label: 'По правому краю' },
-              ]}
-              onChange={(val) => handleChange('textAlign', val)}
-            />
-
-            {/* Жирность текста */}
-            <SelectField
-              label="Жирность"
-              value={(currentProps.fontWeight as string) || 'normal'}
-              options={[
-                { value: 'normal', label: 'Обычный' },
-                { value: 'bold', label: 'Жирный' },
-                { value: 'light', label: 'Тонкий' },
-              ]}
-              onChange={(val) => handleChange('fontWeight', val)}
-            />
-
-            {renderCommonFields()}
-          </div>
-        );
-
-      case 'input':
-        return (
-          <div className="space-y-4">
-            <TextField
-              label="Placeholder"
-              value={(currentProps.placeholder as string) || ''}
-              onChange={(val) => handleChange('placeholder', val)}
-              placeholder="Например: Введите текст..."
-            />
-
-            <SelectField
-              label="Тип поля"
-              value={(currentProps.type as string) || 'text'}
-              options={[
-                { value: 'text', label: 'Текст' },
-                { value: 'email', label: 'Email' },
-                { value: 'password', label: 'Пароль' },
-                { value: 'number', label: 'Число' },
-              ]}
-              onChange={(val) => handleChange('type', val)}
-            />
-
-            <TextField
-              label="Label"
-              value={(currentProps.label as string) || ''}
-              onChange={(val) => handleChange('label', val)}
-              placeholder="Метка над полем"
-            />
-
-            {renderCommonFields()}
-          </div>
-        );
-
-      case 'card':
-        return (
-          <div className="space-y-4">
-            <TextField
-              label="Заголовок"
-              value={(currentProps.title as string) || ''}
-              onChange={(val) => handleChange('title', val)}
-              placeholder="Заголовок карточки"
-            />
-
-            <TextField
-              label="Подзаголовок"
-              value={(currentProps.subtitle as string) || ''}
-              onChange={(val) => handleChange('subtitle', val)}
-              placeholder="Подзаголовок карточки"
-            />
-
-            <SelectField
-              label="Тень"
-              value={(currentProps.elevation as string) || 'md'}
-              options={[
-                { value: 'none', label: 'Нет' },
-                { value: 'sm', label: 'Маленькая' },
-                { value: 'md', label: 'Средняя' },
-                { value: 'lg', label: 'Большая' },
-              ]}
-              onChange={(val) => handleChange('elevation', val)}
-            />
-
-            {renderCommonFields()}
-          </div>
-        );
-
       case 'image':
         return (
           <div className="space-y-4">
             <TextField
-              label="URL изображения"
+              label="Прямая ссылка на картинку"
               value={(currentProps.src as string) || ''}
               onChange={(val) => handleChange('src', val)}
               placeholder="https://example.com/image.jpg"
             />
 
-            <TextField
-              label="Alt текст"
-              value={(currentProps.alt as string) || ''}
-              onChange={(val) => handleChange('alt', val)}
-              placeholder="Описание изображения"
-            />
-
-            <div className="grid grid-cols-2 gap-2">
-              <TextField
-                label="Ширина"
-                value={(currentProps.width as string) || ''}
-                onChange={(val) => handleChange('width', val)}
-                placeholder="auto"
-              />
-              <TextField
-                label="Высота"
-                value={(currentProps.height as string) || ''}
-                onChange={(val) => handleChange('height', val)}
-                placeholder="auto"
+            <div className="space-y-2">
+              <label className="block text-[10px] font-bold text-gray-400 uppercase">
+                Или загрузить с компьютера
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      handleChange('src', reader.result as string);
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
               />
             </div>
 
+            <TextField
+              label="Описание (Alt)"
+              value={(currentProps.alt as string) || ''}
+              onChange={(val) => handleChange('alt', val)}
+              placeholder="Что изображено на фото"
+            />
+
             <SelectField
-              label="Обрезка изображения"
+              label="Заполнение (Object Fit)"
               value={(currentProps.objectFit as string) || 'cover'}
               options={[
-                { value: 'cover', label: 'Cover (заполнить)' },
-                { value: 'contain', label: 'Contain (вписать)' },
-                { value: 'fill', label: 'Fill (растянуть)' },
-                { value: 'none', label: 'None' },
+                { value: 'cover', label: 'Заполнить (Cover)' },
+                { value: 'contain', label: 'Вписать (Contain)' },
+                { value: 'fill', label: 'Растянуть (Fill)' },
               ]}
               onChange={(val) => handleChange('objectFit', val)}
             />
-
             {renderCommonFields()}
           </div>
         );
@@ -299,182 +138,187 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({ component, onUpdate }) =>
       case 'container':
         return (
           <div className="space-y-4">
-            <SelectField
-              label="Направление"
-              value={(currentProps.direction as string) || 'column'}
-              options={[
-                { value: 'column', label: 'Колонка (вертикально)' },
-                { value: 'row', label: 'Строка (горизонтально)' },
-              ]}
-              onChange={(val) => handleChange('direction', val)}
-            />
+            <div className="p-3 bg-gray-50 rounded-md border border-dashed border-gray-300">
+              <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">
+                Настройки сетки (Flex)
+              </p>
 
-            <div className="grid grid-cols-2 gap-2">
-              <TextField
-                label="Отступ внутри"
-                value={(currentProps.padding as string) || '4'}
-                onChange={(val) => handleChange('padding', val)}
-                placeholder="4"
+              <div className="flex gap-2 mb-3">
+                <button
+                  onClick={() => handleChange('direction', 'row')}
+                  className={`flex-1 p-2 border rounded text-xs transition-all ${currentProps.direction === 'row' ? 'bg-primary text-white' : 'bg-white'}`}
+                >
+                  ↔️ В ряд
+                </button>
+                <button
+                  onClick={() => handleChange('direction', 'column')}
+                  className={`flex-1 p-2 border rounded text-xs transition-all ${currentProps.direction !== 'row' ? 'bg-primary text-white' : 'bg-white'}`}
+                >
+                  ↕️ В колонку
+                </button>
+              </div>
+
+              <SelectField
+                label="По горизонтали"
+                value={(currentProps.justify as string) || 'start'}
+                options={[
+                  { value: 'start', label: 'Слева' },
+                  { value: 'center', label: 'По центру' },
+                  { value: 'end', label: 'Справа' },
+                  { value: 'between', label: 'Растянуть (Space)' },
+                ]}
+                onChange={(val) => handleChange('justify', val)}
               />
-              <TextField
-                label="Отступ между"
-                value={(currentProps.gap as string) || '4'}
-                onChange={(val) => handleChange('gap', val)}
-                placeholder="4"
-              />
+
+              <div className="mt-3">
+                <SelectField
+                  label="По вертикали"
+                  value={(currentProps.align as string) || 'start'}
+                  options={[
+                    { value: 'start', label: 'Сверху' },
+                    { value: 'center', label: 'Посередине' },
+                    { value: 'end', label: 'Снизу' },
+                  ]}
+                  onChange={(val) => handleChange('align', val)}
+                />
+              </div>
+
+              <div className="mt-3">
+                <TextField
+                  label="Расстояние между (Gap px)"
+                  value={(currentProps.gap as string) || '10'}
+                  onChange={(val) => handleChange('gap', val)}
+                />
+              </div>
             </div>
+            {renderCommonFields()}
+          </div>
+        );
 
-            <SelectField
-              label="Выравнивание по горизонтали"
-              value={(currentProps.justify as string) || 'start'}
-              options={[
-                { value: 'start', label: 'Начало' },
-                { value: 'center', label: 'Центр' },
-                { value: 'end', label: 'Конец' },
-                { value: 'between', label: 'Между' },
-              ]}
-              onChange={(val) => handleChange('justify', val)}
+      case 'button':
+        return (
+          <div className="space-y-4">
+            <TextField
+              label="Текст кнопки"
+              value={(currentProps.text as string) || ''}
+              onChange={(val) => handleChange('text', val)}
             />
+            {renderCommonFields()}
+          </div>
+        );
 
-            <SelectField
-              label="Выравнивание по вертикали"
-              value={(currentProps.align as string) || 'start'}
-              options={[
-                { value: 'start', label: 'Начало' },
-                { value: 'center', label: 'Центр' },
-                { value: 'end', label: 'Конец' },
-              ]}
-              onChange={(val) => handleChange('align', val)}
+      case 'text':
+        return (
+          <div className="space-y-4">
+            <TextField
+              label="Содержимое"
+              value={(currentProps.content as string) || ''}
+              onChange={(val) => handleChange('content', val)}
+              multiline
             />
-
             {renderCommonFields()}
           </div>
         );
 
       default:
-        return <div className="space-y-4">{renderCommonFields()}</div>;
+        return renderCommonFields();
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Информация о компоненте */}
       <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
-        <p className="text-primary font-medium flex items-center gap-2">
-          <span>✅</span> Выбран компонент
+        <p className="text-primary text-xs font-bold uppercase tracking-widest">
+          Выбран: {component.type}
         </p>
-        <div className="mt-2 space-y-1">
-          <p className="text-xs">
-            <span className="text-text-secondary">Тип:</span>{' '}
-            <span className="text-text-primary font-medium">{component.type}</span>
-          </p>
-          <p className="text-xs">
-            <span className="text-text-secondary">ID:</span>{' '}
-            <span className="text-text-primary font-mono">{component.id.slice(0, 12)}...</span>
-          </p>
-        </div>
       </div>
 
-      {/* Редактируемые поля */}
-      <div className="border-t border-border pt-4">
-        <h4 className="text-sm font-medium mb-3">Редактируемые свойства</h4>
-        {renderFields()}
-      </div>
+      <div className="border-t border-border pt-4">{renderFields()}</div>
 
-      {/* CSS классы (для продвинутых пользователей) */}
       <div className="border-t border-border pt-4">
-        <h4 className="text-sm font-medium mb-3">Дополнительно</h4>
         <TextField
-          label="CSS классы (Tailwind)"
+          label="Доп. Tailwind классы"
           value={(currentProps.className as string) || ''}
           onChange={(val) => handleChange('className', val)}
-          placeholder="px-4 py-2 bg-blue-500 text-white rounded"
-          multiline
-        />
-        <p className="text-xs text-text-secondary mt-1">
-          💡 Примеры: <code className="bg-gray-100 px-1 rounded">mt-4</code>,{' '}
-          <code className="bg-gray-100 px-1 rounded">text-center</code>,{' '}
-          <code className="bg-gray-100 px-1 rounded">bg-red-500</code>
-        </p>
-      </div>
-    </div>
-  );
-};
-
-// Компонент для выбора цвета
-const ColorField: React.FC<{
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}> = ({ label, value, onChange }) => {
-  return (
-    <div>
-      <label className="block text-xs font-medium text-text-secondary mb-1">{label}</label>
-      <div className="flex gap-2 items-center">
-        <input
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-10 h-10 border border-border rounded cursor-pointer"
-        />
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="flex-1 p-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background"
-          placeholder="#000000"
+          placeholder="shadow-lg p-5"
         />
       </div>
     </div>
   );
 };
 
-// TextField компонент (остается без изменений)
+const ColorField: React.FC<{ label: string; value: string; onChange: (v: string) => void }> = ({
+  label,
+  value,
+  onChange,
+}) => (
+  <div>
+    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">{label}</label>
+    <div className="flex gap-2">
+      <input
+        type="color"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-8 h-8 rounded cursor-pointer border"
+      />
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="flex-1 text-xs border rounded p-1"
+      />
+    </div>
+  </div>
+);
+
 const TextField: React.FC<{
   label: string;
   value: string;
-  onChange: (value: string) => void;
+  onChange: (v: string) => void;
   placeholder?: string;
   multiline?: boolean;
-}> = ({ label, value, onChange, placeholder, multiline }) => {
-  const Component = multiline ? 'textarea' : 'input';
-  return (
-    <div>
-      <label className="block text-xs font-medium text-text-secondary mb-1">{label}</label>
-      <Component
-        className="w-full p-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+}> = ({ label, value, onChange, placeholder, multiline }) => (
+  <div>
+    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">{label}</label>
+    {multiline ? (
+      <textarea
+        className="w-full text-xs border rounded p-2 bg-gray-50"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        rows={multiline ? 3 : 1}
+        rows={3}
       />
-    </div>
-  );
-};
+    ) : (
+      <input
+        className="w-full text-xs border rounded p-2 bg-gray-50"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+      />
+    )}
+  </div>
+);
 
-// SelectField компонент (остается без изменений)
 const SelectField: React.FC<{
   label: string;
   value: string;
   options: { value: string; label: string }[];
-  onChange: (value: string) => void;
-}> = ({ label, value, options, onChange }) => {
-  return (
-    <div>
-      <label className="block text-xs font-medium text-text-secondary mb-1">{label}</label>
-      <select
-        className="w-full p-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-};
+  onChange: (v: string) => void;
+}> = ({ label, value, options, onChange }) => (
+  <div>
+    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">{label}</label>
+    <select
+      className="w-full text-xs border rounded p-2 bg-gray-50 cursor-pointer"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      {options.map((opt) => (
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
+      ))}
+    </select>
+  </div>
+);
 
 export default PropertyPanel;

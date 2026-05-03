@@ -1,4 +1,3 @@
-// src/components/FigmaExportButton.tsx
 import React, { useState, useEffect } from 'react';
 import type { UIComponent } from '../types/types';
 
@@ -16,7 +15,6 @@ const FigmaExportButton: React.FC<FigmaExportButtonProps> = ({
   const [isExporting, setIsExporting] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
 
-  // Отладка
   useEffect(() => {
     console.log('=== FIGMA EXPORT BUTTON DEBUG ===');
     console.log('components:', components);
@@ -25,9 +23,7 @@ const FigmaExportButton: React.FC<FigmaExportButtonProps> = ({
     console.log('================================');
   }, [components, projectName]);
 
-  // Создаем данные с ПРИНУДИТЕЛЬНЫМИ тестовыми компонентами, если их нет
   const getExportData = () => {
-    // Если есть реальные компоненты - используем их
     if (components && components.length > 0) {
       return {
         components: components,
@@ -37,7 +33,6 @@ const FigmaExportButton: React.FC<FigmaExportButtonProps> = ({
       };
     }
 
-    // Иначе создаем тестовые данные для проверки плагина
     console.warn('⚠️ Нет реальных компонентов, создаем тестовые данные');
     return {
       projectName: projectName || 'Тестовый проект',
@@ -78,26 +73,17 @@ const FigmaExportButton: React.FC<FigmaExportButtonProps> = ({
     }
   };
 
-  // src/components/FigmaExportButton.tsx
-
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      // 1. Копируем данные в буфер (на всякий случай, если протокол не сработает)
       await navigator.clipboard.writeText(dataStr);
 
       const figmaUrl = `figma://plugin/ai-ui-designer-export?data=${encodedData}`;
-
-      // ✅ ВМЕСТО window.open(figmaUrl, '_blank');
-      // Используем window.location.href.
-      // Это запустит приложение Figma, не открывая новую вкладку в браузере.
       window.location.href = figmaUrl;
 
-      // Уведомление можно показать с небольшой задержкой,
-      // чтобы не блокировать процесс запуска приложения
       setTimeout(() => {
         alert(
-          `🚀 Запрос отправлен в Figma!\n\nПроект: ${exportData.projectName}\nКомпонентов: ${exportData.components.length}\n\nЕсли Figma не открылась автоматически, используйте кнопку "Скопировать JSON" и вставьте его в плагин вручную.`
+          ` Запрос отправлен в Figma!\n\nПроект: ${exportData.projectName}\nКомпонентов: ${exportData.components.length}\n\nЕсли Figma не открылась автоматически, используйте кнопку "Скопировать JSON" и вставьте его в плагин вручную.`
         );
       }, 500);
     } catch (err) {
@@ -120,7 +106,7 @@ const FigmaExportButton: React.FC<FigmaExportButtonProps> = ({
         disabled={isCopying}
         className="w-full mb-2 py-2 text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
       >
-        {isCopying ? '⏳ Копирование...' : '📋 Скопировать JSON в буфер'}
+        {isCopying ? ' Копирование...' : ' Скопировать JSON в буфер'}
       </button>
 
       <button
@@ -128,7 +114,7 @@ const FigmaExportButton: React.FC<FigmaExportButtonProps> = ({
         disabled={isExporting}
         className="w-full py-2 text-sm bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
       >
-        {isExporting ? '⏳ Открытие Figma...' : '🎨 Экспорт в Figma'}
+        {isExporting ? ' Открытие Figma...' : '🎨 Экспорт в Figma'}
       </button>
     </div>
   );

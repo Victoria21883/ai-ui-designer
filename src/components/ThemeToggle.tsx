@@ -1,4 +1,3 @@
-// src/components/ThemeToggle.tsx
 import React from 'react';
 import { useThemeStore } from '../store/themeStore';
 

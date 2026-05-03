@@ -12,7 +12,6 @@ interface ExportData {
   projectName: string;
 }
 
-// Попытка извлечь цвет из Tailwind-класса (упрощенно)
 function getColorFromClass(
   className: string
 ): { r: number; g: number; b: number; a: number } | null {
@@ -27,26 +26,22 @@ async function loadFont() {
   await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
 }
 
-// ГЛАВНАЯ ФУНКЦИЯ: Теперь она рекурсивная
 async function renderComponent(component: UIComponent): Promise<SceneNode> {
   const { type, props = {}, children = [] } = component;
   const className = (props.className as string) || '';
 
   let node: FrameNode | TextNode | RectangleNode;
 
-  // 1. Создаем узел в зависимости от типа
   switch (type) {
     case 'container':
     case 'card': {
       const frame = figma.createFrame();
       frame.name = type.toUpperCase();
 
-      // Базовые настройки Layout (аналог Flexbox)
       frame.layoutMode = 'VERTICAL';
       frame.itemSpacing = 10;
       frame.paddingLeft = frame.paddingRight = frame.paddingTop = frame.paddingBottom = 16;
 
-      // Обработка фонового цвета
       const bgColor = getColorFromClass(className);
       if (bgColor) {
         frame.fills = [{ type: 'SOLID', color: { r: bgColor.r, g: bgColor.g, b: bgColor.b } }];
@@ -54,17 +49,15 @@ async function renderComponent(component: UIComponent): Promise<SceneNode> {
         frame.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
         frame.cornerRadius = 8;
       } else {
-        frame.fills = []; // Прозрачный контейнер по умолчанию
+        frame.fills = [];
       }
 
-      // РЕКУРСИЯ: Отрисовываем всех детей и вставляем их внутрь
       if (children && children.length > 0) {
         for (const child of children) {
           const childNode = await renderComponent(child);
           frame.appendChild(childNode);
         }
       } else {
-        // Если детей нет, даем минимальный размер, чтобы фрейм не схлопнулся
         frame.resize(100, 100);
       }
 
@@ -103,7 +96,6 @@ async function renderComponent(component: UIComponent): Promise<SceneNode> {
     }
 
     default: {
-      // Если тип неизвестен, создаем текстовую заглушку
       const errorText = figma.createText();
       await loadFont();
       errorText.characters = `Unknown: ${type}`;
@@ -117,7 +109,6 @@ async function renderComponent(component: UIComponent): Promise<SceneNode> {
 async function exportToFigma(data: ExportData) {
   const { components, projectName } = data;
 
-  // Создаем основной артборд
   const mainFrame = figma.createFrame();
   mainFrame.name = projectName || 'AI Export';
   mainFrame.layoutMode = 'VERTICAL';
@@ -130,7 +121,6 @@ async function exportToFigma(data: ExportData) {
   mainFrame.counterAxisSizingMode = 'AUTO';
   mainFrame.fills = [{ type: 'SOLID', color: { r: 0.96, g: 0.96, b: 0.98 } }];
 
-  // Проходим по списку компонентов верхнего уровня
   for (const component of components) {
     try {
       const node = await renderComponent(component);

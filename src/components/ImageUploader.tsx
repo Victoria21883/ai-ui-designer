@@ -1,4 +1,3 @@
-// src/components/ImageUploader.tsx
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 
@@ -16,13 +15,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, isProcessi
       const file = acceptedFiles[0];
       if (!file) return;
 
-      // Проверка типа файла
       if (!file.type.startsWith('image/')) {
         setError('Пожалуйста, загрузите изображение');
         return;
       }
 
-      // Проверка размера (макс 10MB)
       if (file.size > 10 * 1024 * 1024) {
         setError('Изображение не должно превышать 10MB');
         return;
@@ -30,7 +27,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, isProcessi
 
       setError(null);
 
-      // Конвертируем в base64
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64 = reader.result as string;

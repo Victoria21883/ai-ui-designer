@@ -1,4 +1,3 @@
-// src/components/FigmaInstructions.tsx
 import React, { useState } from 'react';
 
 const FigmaInstructions: React.FC = () => {

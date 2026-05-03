@@ -1,6 +1,3 @@
-// src/core/ai/errors.ts
-
-// Тип для ошибки
 export interface AIErrorType {
   message: string;
   code: string;
@@ -8,7 +5,6 @@ export interface AIErrorType {
   name: string;
 }
 
-// Функция для создания ошибки (вместо класса)
 export function createAIError(message: string, code: string, status?: number): AIErrorType & Error {
   const error = new Error(message) as AIErrorType & Error;
   error.name = 'AIError';
@@ -17,7 +13,6 @@ export function createAIError(message: string, code: string, status?: number): A
   return error;
 }
 
-// Проверка на тип ошибки
 export function isAIError(error: unknown): error is AIErrorType {
   return (
     error instanceof Error &&

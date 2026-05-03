@@ -1,4 +1,3 @@
-// src/components/HistoryPanel.tsx
 import React, { useState } from 'react';
 import { useProjectStore } from '../store/projectStore';
 import type { HistoryEntry } from '../store/projectStore';
@@ -160,7 +159,6 @@ const HistoryPanel: React.FC = () => {
   );
 };
 
-// Компонент для отображения отдельной записи истории
 const HistoryItem: React.FC<
   HistoryItemProps & {
     isEditing?: boolean;
@@ -267,7 +265,6 @@ const HistoryItem: React.FC<
         )}
       </div>
 
-      {/* Всплывающая подсказка с полной информацией */}
       {showTooltip && !isEditing && (
         <div className="absolute z-10 bottom-full left-0 mb-1 p-2 bg-gray-900 text-white text-xs rounded shadow-lg whitespace-nowrap">
           <p className="font-medium">{entry.description}</p>

@@ -45,7 +45,6 @@ const EditorPage: React.FC = () => {
   const [uploadMode, setUploadMode] = useState<'text' | 'image'>('text');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  // ========== ДЛЯ СМЕНЫ НАЗВАНИЯ ПРОЕКТА ==========
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState('');
 
@@ -104,7 +103,24 @@ const EditorPage: React.FC = () => {
     [currentProject, selectedComponentId, setCurrentProject, saveProject]
   );
 
-  const selectedComponent = currentProject?.components.find((c) => c.id === selectedComponentId);
+  const findSelectedComponent = (
+    components: UIComponent[],
+    id: string
+  ): UIComponent | undefined => {
+    for (const comp of components) {
+      if (comp.id === id) return comp;
+      if (comp.children) {
+        const foundInChildren = findSelectedComponent(comp.children, id);
+        if (foundInChildren) return foundInChildren;
+      }
+    }
+    return undefined;
+  };
+
+  const selectedComponent =
+    currentProject && selectedComponentId
+      ? findSelectedComponent(currentProject.components, selectedComponentId)
+      : undefined;
 
   const getDefaultProps = useCallback((type: ComponentType): Record<string, unknown> => {
     switch (type) {
@@ -142,7 +158,6 @@ const EditorPage: React.FC = () => {
     return validTypes.includes(lowerType) ? lowerType : 'text';
   }, []);
 
-  // ========== ФУНКЦИЯ ПЕРЕИМЕНОВАНИЯ ==========
   const handleRenameProject = useCallback(() => {
     if (!currentProject || !tempName.trim()) {
       setIsEditingName(false);
@@ -245,7 +260,7 @@ const EditorPage: React.FC = () => {
     setIsGenerating(true);
     setError(null);
     const { startBatch, endBatch } = useProjectStore.getState();
-    startBatch(`🤖 Генерация макета`);
+    startBatch(`Генерация макета`);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       const mockResponse = getMockResponse(prompt);
@@ -263,20 +278,45 @@ const EditorPage: React.FC = () => {
   }, [prompt, currentProject, setCurrentProject, saveProject, transformMockToComponents]);
 
   const handleDropComponent = useCallback(
-    (item: DragItem) => {
+    (item: DragItem, position?: { x: number; y: number }, parentId?: string) => {
       if (!currentProject || !item.componentType) return;
       const { startBatch, endBatch } = useProjectStore.getState();
       startBatch(`➕ Добавлен компонент`);
+
+      const isContainer = item.componentType === 'container' || item.componentType === 'card';
       const newComponent: UIComponent = {
         id: `comp-${Date.now()}`,
         type: item.componentType,
         props: getDefaultProps(item.componentType),
+        children: isContainer ? [] : undefined,
       };
-      setCurrentProject({
-        ...currentProject,
-        components: [...currentProject.components, newComponent],
-        updatedAt: new Date(),
-      });
+
+      if (parentId) {
+        const addNestedComponent = (components: UIComponent[]): UIComponent[] => {
+          return components.map((comp) => {
+            if (comp.id === parentId) {
+              return { ...comp, children: [...(comp.children || []), newComponent] };
+            }
+            if (comp.children) {
+              return { ...comp, children: addNestedComponent(comp.children) };
+            }
+            return comp;
+          });
+        };
+
+        setCurrentProject({
+          ...currentProject,
+          components: addNestedComponent(currentProject.components),
+          updatedAt: new Date(),
+        });
+      } else {
+        setCurrentProject({
+          ...currentProject,
+          components: [...currentProject.components, newComponent],
+          updatedAt: new Date(),
+        });
+      }
+
       saveProject();
       selectComponent(newComponent.id);
       endBatch();
@@ -287,13 +327,31 @@ const EditorPage: React.FC = () => {
   const handleMoveComponent = useCallback(
     (dragId: string, hoverId: string) => {
       if (!currentProject) return;
-      const dragIndex = currentProject.components.findIndex((c) => c.id === dragId);
-      const hoverIndex = currentProject.components.findIndex((c) => c.id === hoverId);
-      if (dragIndex === -1 || hoverIndex === -1) return;
-      const newComponents = [...currentProject.components];
-      const [dragged] = newComponents.splice(dragIndex, 1);
-      newComponents.splice(hoverIndex, 0, dragged);
-      setCurrentProject({ ...currentProject, components: newComponents, updatedAt: new Date() });
+
+      const moveInTree = (components: UIComponent[]): UIComponent[] => {
+        const dragIndex = components.findIndex((c) => c.id === dragId);
+        const hoverIndex = components.findIndex((c) => c.id === hoverId);
+
+        if (dragIndex !== -1 && hoverIndex !== -1) {
+          const newComponents = [...components];
+          const [dragged] = newComponents.splice(dragIndex, 1);
+          newComponents.splice(hoverIndex, 0, dragged);
+          return newComponents;
+        }
+
+        return components.map((comp) => {
+          if (comp.children && comp.children.length > 0) {
+            return { ...comp, children: moveInTree(comp.children) };
+          }
+          return comp;
+        });
+      };
+
+      setCurrentProject({
+        ...currentProject,
+        components: moveInTree(currentProject.components),
+        updatedAt: new Date(),
+      });
     },
     [currentProject, setCurrentProject]
   );
@@ -301,11 +359,22 @@ const EditorPage: React.FC = () => {
   const handleDeleteComponent = useCallback(
     (id: string) => {
       if (!currentProject) return;
+
+      const deleteFromTree = (components: UIComponent[]): UIComponent[] => {
+        return components
+          .filter((c) => c.id !== id) // Удаляем, если нашли
+          .map((c) => ({
+            ...c,
+            children: c.children ? deleteFromTree(c.children) : undefined, // Чистим детей
+          }));
+      };
+
       setCurrentProject({
         ...currentProject,
-        components: currentProject.components.filter((c) => c.id !== id),
+        components: deleteFromTree(currentProject.components),
         updatedAt: new Date(),
       });
+
       if (selectedComponentId === id) selectComponent(null);
     },
     [currentProject, setCurrentProject, selectedComponentId, selectComponent]
@@ -328,14 +397,33 @@ const EditorPage: React.FC = () => {
   const handleMoveUp = useCallback(
     (id: string) => {
       if (!currentProject) return;
-      const index = currentProject.components.findIndex((c) => c.id === id);
-      if (index <= 0) return;
-      const newComponents = [...currentProject.components];
-      [newComponents[index - 1], newComponents[index]] = [
-        newComponents[index],
-        newComponents[index - 1],
-      ];
-      setCurrentProject({ ...currentProject, components: newComponents, updatedAt: new Date() });
+
+      const moveUpInTree = (components: UIComponent[]): UIComponent[] => {
+        const index = components.findIndex((c) => c.id === id);
+
+        if (index !== -1) {
+          if (index <= 0) return components;
+          const newComponents = [...components];
+          [newComponents[index - 1], newComponents[index]] = [
+            newComponents[index],
+            newComponents[index - 1],
+          ];
+          return newComponents;
+        }
+
+        return components.map((comp) => {
+          if (comp.children && comp.children.length > 0) {
+            return { ...comp, children: moveUpInTree(comp.children) };
+          }
+          return comp;
+        });
+      };
+
+      setCurrentProject({
+        ...currentProject,
+        components: moveUpInTree(currentProject.components),
+        updatedAt: new Date(),
+      });
     },
     [currentProject, setCurrentProject]
   );
@@ -343,14 +431,33 @@ const EditorPage: React.FC = () => {
   const handleMoveDown = useCallback(
     (id: string) => {
       if (!currentProject) return;
-      const index = currentProject.components.findIndex((c) => c.id === id);
-      if (index === -1 || index === currentProject.components.length - 1) return;
-      const newComponents = [...currentProject.components];
-      [newComponents[index], newComponents[index + 1]] = [
-        newComponents[index + 1],
-        newComponents[index],
-      ];
-      setCurrentProject({ ...currentProject, components: newComponents, updatedAt: new Date() });
+
+      const moveDownInTree = (components: UIComponent[]): UIComponent[] => {
+        const index = components.findIndex((c) => c.id === id);
+
+        if (index !== -1) {
+          if (index === -1 || index === components.length - 1) return components; // Уже последний
+          const newComponents = [...components];
+          [newComponents[index], newComponents[index + 1]] = [
+            newComponents[index + 1],
+            newComponents[index],
+          ];
+          return newComponents;
+        }
+
+        return components.map((comp) => {
+          if (comp.children && comp.children.length > 0) {
+            return { ...comp, children: moveDownInTree(comp.children) };
+          }
+          return comp;
+        });
+      };
+
+      setCurrentProject({
+        ...currentProject,
+        components: moveDownInTree(currentProject.components),
+        updatedAt: new Date(),
+      });
     },
     [currentProject, setCurrentProject]
   );
@@ -383,7 +490,6 @@ const EditorPage: React.FC = () => {
               <HistoryControls />
               <FigmaInstructions />
 
-              {/* СМЕНА НАЗВАНИЯ ПРОЕКТА */}
               {currentProject && (
                 <div className="flex items-center gap-2 bg-background/50 px-3 py-1 rounded-md border border-border group transition-all hover:border-primary">
                   {isEditingName ? (

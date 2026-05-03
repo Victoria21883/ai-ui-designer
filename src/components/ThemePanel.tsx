@@ -1,4 +1,3 @@
-// src/components/ThemePanel.tsx
 import React, { useState } from 'react';
 import { useThemeStore } from '../store/themeStore';
 
@@ -24,7 +23,6 @@ const ThemePanel: React.FC = () => {
 
   const handleColorChange = (key: keyof CustomColors, value: string) => {
     setCustomColors((prev) => ({ ...prev, [key]: value }));
-    // Обновляем CSS переменную
     const cssVarName = `--color-${key === 'textPrimary' ? 'text-primary' : key}`;
     document.documentElement.style.setProperty(cssVarName, value);
   };
@@ -40,7 +38,6 @@ const ThemePanel: React.FC = () => {
     };
     setCustomColors(defaultColors);
 
-    // Сбрасываем CSS переменные
     Object.entries(defaultColors).forEach(([key, value]) => {
       const cssVarName = `--color-${key === 'textPrimary' ? 'text-primary' : key}`;
       document.documentElement.style.setProperty(cssVarName, value);

@@ -1,4 +1,3 @@
-// src/components/Renderer.tsx
 import React from 'react';
 import { Container, Button, Text, Input, Card } from './ui';
 import type { UIComponent } from '../types/types';
@@ -6,107 +5,101 @@ import type { UIComponent } from '../types/types';
 type AnyProps = Record<string, unknown>;
 type AnyComponent = React.ComponentType<AnyProps>;
 
-// Маппинг типов компонентов с правильными соответствиями
+const ImageComponent: React.FC<AnyProps> = (props) => (
+  <img
+    src={(props.src as string) || 'https://via.placeholder.com/150?text=No+Image'}
+    alt={(props.alt as string) || ''}
+    style={props.style as React.CSSProperties}
+    className={props.className as string}
+  />
+);
+
 const componentMap: Record<string, AnyComponent> = {
   container: Container as AnyComponent,
   button: Button as AnyComponent,
   text: Text as AnyComponent,
   input: Input as AnyComponent,
   card: Card as AnyComponent,
+  image: ImageComponent as AnyComponent,
   header: Text as AnyComponent,
   p: Text as AnyComponent,
   span: Text as AnyComponent,
   div: Container as AnyComponent,
-  // Игнорируем body - он будет обработан как text
 };
 
 interface RendererProps {
   component: UIComponent | UIComponent[] | unknown;
   depth?: number;
+  children?: React.ReactNode;
 }
 
-const Renderer: React.FC<RendererProps> = ({ component, depth = 0 }) => {
-  // Защита от слишком глубокой рекурсии
-  if (depth > 20) {
-    console.warn('Слишком глубокая вложенность компонентов');
-    return null;
-  }
+const Renderer: React.FC<RendererProps> = ({ component, depth = 0, children }) => {
+  if (depth > 20 || !component) return null;
 
-  // Если компонент - массив
   if (Array.isArray(component)) {
-    if (component.length === 0) return null;
-
     return (
       <>
-        {component.map((item, index) => {
-          const itemId =
-            item && typeof item === 'object' && 'id' in item
-              ? String(item.id)
-              : `item-${depth}-${index}`;
-          return <Renderer key={itemId} component={item} depth={depth + 1} />;
-        })}
+        {component.map((item, index) => (
+          <Renderer key={item.id || index} component={item} depth={depth + 1} />
+        ))}
       </>
     );
   }
 
-  // Если компонент не определен
-  if (!component || typeof component !== 'object') {
-    return null;
-  }
+  const comp = component as UIComponent;
+  const type = String(comp.type || '').toLowerCase();
+  const props = comp.props || {};
 
-  const comp = component as AnyProps;
-  let type = String(comp.type || '').toLowerCase();
+  const calculatedStyle: React.CSSProperties = {
+    width: (props.width as string) || 'auto',
+    height: (props.height as string) || 'auto',
+    display:
+      type === 'image'
+        ? 'block'
+        : type === 'container' || type === 'card'
+          ? 'flex'
+          : 'inline-block',
+    objectFit: (props.objectFit as React.CSSProperties['objectFit']) || 'cover',
+    flexDirection: (props.direction as React.CSSProperties['flexDirection']) || 'column',
+    gap: props.gap ? `${props.gap}px` : '0px',
+    padding: props.padding ? `${props.padding}px` : '0px',
+    margin: props.margin as string,
+    backgroundColor: props.backgroundColor as string,
+    color: props.color as string,
+    borderRadius: props.borderRadius ? `${props.borderRadius}px` : undefined,
 
-  // Заменяем недопустимые типы
-  if (type === 'body') {
-    console.warn('Заменяем <body> на <p>');
-    type = 'p';
-  }
+    wordBreak: 'break-word',
+    whiteSpace: 'pre-wrap',
 
-  const props = (comp.props as AnyProps) || {};
-  const children = comp.children;
-  const styles = comp.styles as AnyProps | undefined;
-
-  const Component = componentMap[type];
-
-  if (!Component) {
-    console.warn(`Unknown component type: ${type}, используем Text`);
-    // По умолчанию используем Text для неизвестных типов
-    return <Text className={styles?.className as string}>{children as React.ReactNode}</Text>;
-  }
-
-  const finalProps: AnyProps = {
-    ...props,
-    className: styles?.className || props.className || '',
-    color: props.color,
-    backgroundColor: props.backgroundColor,
-    width: props.width,
-    height: props.height,
-    margin: props.margin,
-    padding: props.padding,
-    borderRadius: props.borderRadius,
-    textAlign: props.textAlign,
-    fontWeight: props.fontWeight,
-    fontSize: props.fontSize,
+    justifyContent:
+      props.justify === 'center'
+        ? 'center'
+        : props.justify === 'end'
+          ? 'flex-end'
+          : props.justify === 'between'
+            ? 'space-between'
+            : 'flex-start',
+    alignItems:
+      props.align === 'center' ? 'center' : props.align === 'end' ? 'flex-end' : 'stretch',
+    textAlign: props.textAlign as React.CSSProperties['textAlign'],
   };
 
-  if (styles) {
-    finalProps.style = styles;
-  }
+  const Component = componentMap[type] || Text;
 
-  // Функция для рендеринга детей
+  const finalProps = {
+    ...props,
+    style: { ...calculatedStyle, ...((props.style as React.CSSProperties) || {}) },
+    className: (props.className as string) || '',
+  };
+
   const renderContent = () => {
-    if (!children) return null;
-
-    if (Array.isArray(children)) {
-      return <Renderer component={children} depth={depth + 1} />;
+    if (children) {
+      return children;
     }
-
-    if (typeof children === 'object') {
-      return <Renderer component={children} depth={depth + 1} />;
+    if (comp.children && comp.children.length > 0) {
+      return <Renderer component={comp.children} depth={depth + 1} />;
     }
-
-    return children;
+    return null;
   };
 
   return <Component {...finalProps}>{renderContent()}</Component>;

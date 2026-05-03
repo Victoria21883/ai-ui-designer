@@ -3,7 +3,7 @@ export type ComponentType = 'button' | 'input' | 'card' | 'text' | 'container' |
 export interface UIComponent {
   id: string;
   type: ComponentType;
-  props: Record<string, unknown>; // Используем unknown для безопасности
+  props: Record<string, unknown>;
   children?: UIComponent[];
   styles?: Record<string, string>;
 }

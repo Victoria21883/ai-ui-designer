@@ -1,4 +1,3 @@
-// src/components/HTMLPreviewModal.tsx
 import React, { useState, useMemo } from 'react';
 import { generateFullHTML } from '../utils/htmlExporter';
 import type { UIComponent } from '../types/types';
@@ -18,7 +17,6 @@ const HTMLPreviewModal: React.FC<HTMLPreviewModalProps> = ({
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // ✅ Используем useMemo вместо useEffect для вычисления HTML
   const htmlContent = useMemo(() => {
     if (!isOpen) return '';
     return generateFullHTML(components, projectName);

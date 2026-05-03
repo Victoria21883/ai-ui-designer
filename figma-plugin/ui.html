@@ -135,7 +135,6 @@
         statusDiv.innerHTML = message;
       }
 
-      // Загрузка из текстового поля
       document.getElementById('parseBtn').onclick = () => {
         const jsonText = document.getElementById('jsonInput').value;
         if (!jsonText.trim()) {
@@ -156,7 +155,6 @@
         }
       };
 
-      // Экспорт в Figma
       document.getElementById('exportBtn').onclick = () => {
         if (pendingData) {
           updateStatus('waiting', '🔄 Экспортируем в Figma...');
@@ -168,7 +166,6 @@
         }
       };
 
-      // Автоматическая загрузка из URL параметров
       function loadFromUrl() {
         try {
           const urlParams = new URLSearchParams(window.location.search);
@@ -187,7 +184,6 @@
         return false;
       }
 
-      // Обработка ответов от плагина
       window.onmessage = (event) => {
         const msg = event.data.pluginMessage;
         if (msg) {
@@ -200,7 +196,6 @@
         }
       };
 
-      // Запуск
       loadFromUrl();
       parent.postMessage({ pluginMessage: { type: 'ready' } }, '*');
     </script>

@@ -1,4 +1,3 @@
-// src/store/themeStore.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -17,7 +16,6 @@ export const useThemeStore = create<ThemeState>()(
 
       setTheme: (theme) => {
         set({ theme });
-        // Применяем класс темы к body
         if (theme === 'dark') {
           document.documentElement.classList.add('theme-dark');
           document.documentElement.classList.remove('theme-light');
